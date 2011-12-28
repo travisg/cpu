@@ -1,0 +1,9 @@
+build-*
+*.swp
+*~
+tags
+TAGS
+cscope.out
+local.mk
+*.bin
+*.hex
