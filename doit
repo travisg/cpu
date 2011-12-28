@@ -1,0 +1,10 @@
+#!/bin/sh
+
+tagit
+make -C asm $@ &&
+make -C emu $@ ||
+exit 1
+
+./asm/build-asm/asm -o test/test.bin test/test.asm
+echo $?
+
