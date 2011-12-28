@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2011 Travis Geiselbrecht
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+%{
+
+#include <stdio.h>
+#include <string.h>
+
+#include "Sym.h"
+#include "Symtab.h"
+#include "Codegen.h"
+
+char *current_source;
+
+void yyerror(const char *string);
+int yylex(void);
+
+%}
+
+%locations
+%error-verbose
+
+%token TOK_INTEGER_LITERAL TOK_REGISTER
+%token TOK_IDENTIFIER TOK_KEYWORD
+
+%union
+{
+	Sym *sym;
+	Reg reg;
+	int intval;
+}
+
+%type <sym> TOK_IDENTIFIER TOK_KEYWORD
+%type <reg> TOK_REGISTER
+%type <intval> TOK_INTEGER_LITERAL
+
+
+%start sequence
+
+%%
+
+sequence		: expr sequence
+				| expr
+				;
+
+expr			: 
+				| ins_loadstore
+				| ins_3addr
+				| ins_2addr
+				| ins_1addr
+				| label
+				;
+
+label			: TOK_IDENTIFIER ':'
+				{
+					//printf("label '%s'\n", $1->GetName().c_str());
+					gCodegen->AddLabel($1);
+				}
+				;
+
+ins_3addr		:	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER ',' TOK_REGISTER
+				{
+					//printf("3 addr reg,reg,reg\n");
+					gCodegen->Emit3Addr($1, $2, $4, $6);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL
+				{
+					//printf("3 addr reg,reg,#imm\n");
+					gCodegen->Emit3Addr($1, $2, $4, $7);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER ',' TOK_IDENTIFIER
+				{
+					//printf("3 addr reg,reg,identifier\n");
+					gCodegen->Emit3Addr($1, $2, $4, $6);
+				}
+				;
+
+ins_2addr		:	TOK_KEYWORD TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL
+				{
+					//printf("2 addr reg,#imm\n");
+					gCodegen->Emit2Addr($1, $2, $5);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER
+				{
+					//printf("2 addr reg,reg\n");
+					gCodegen->Emit2Addr($1, $2, $4);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' TOK_IDENTIFIER
+				{
+					//printf("2 addr reg,identifier\n");
+					gCodegen->Emit2Addr($1, $2, $4);
+				}
+				;
+
+ins_1addr		:	TOK_KEYWORD TOK_REGISTER
+				{
+					//printf("1 addr ins reg\n");
+					gCodegen->Emit1Addr($1, $2);
+				}
+				|	TOK_KEYWORD '#' TOK_INTEGER_LITERAL
+				{
+					//printf("1 addr ins #imm\n");
+					gCodegen->Emit1Addr($1, $3);
+				}
+				|	TOK_KEYWORD TOK_IDENTIFIER
+				{
+					//printf("1 addr ins identifier\n");
+					gCodegen->Emit1Addr($1, $2);
+				}
+				;
+
+ins_loadstore	:	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ']'
+				{
+					//printf("load/store reg,[reg]\n");
+					gCodegen->EmitLoadStore2Reg($1, $2, $5);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL ']'
+				{
+					//printf("load/store reg,[reg,#imm]\n");
+					gCodegen->EmitLoadStore2RegImm($1, $2, $5, $8);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL ']' '+'
+				{
+					//printf("load/store reg,[reg,#imm]+\n");
+					gCodegen->EmitLoadStore2RegImmPostUpdate($1, $2, $5, $8);
+				}
+				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ']' ',' '#' TOK_INTEGER_LITERAL '+'
+				{
+					//printf("load/store reg,[reg],#imm+\n");
+					gCodegen->EmitLoadStore2RegImmPostIndexUpdate($1, $2, $5, $9);
+				};
+
+%%
+
+#include "lex.yy.c"
+
+void yyerror(const char *string)
+{
+	fprintf(stderr, "parse error file %s:%d: ", current_source, yyget_lineno());
+	fprintf(stderr, "%s\n", string);
+}
+
+int yywrap(void)
+{
+	return 1;
+}
+
+int open_input(const char *file)
+{
+	FILE *fp;
+
+	fp = fopen(file, "r");
+	if (!fp)
+		return -1;
+
+	current_source = strdup(file);
+
+	yyin = fp;
+
+	return 0;
+}
+
+int parse_source()
+{
+	int err = yyparse();
+	if (err)
+		return -1;
+
+	return 0;
+}
