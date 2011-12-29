@@ -23,6 +23,7 @@
 #include <string>
 #include <stdio.h>
 #include <assert.h>
+#include <arpa/inet.h> // for htons
 #include "OutputFile.h"
 
 OutputFile::OutputFile()

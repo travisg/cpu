@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstdio>
 #include <cassert>
 
 #include "Cpu16.h"

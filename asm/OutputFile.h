@@ -25,6 +25,7 @@
 
 #include <cstdio>
 #include <string>
+#include <inttypes.h>
 
 class OutputFile {
 public:
