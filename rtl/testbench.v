@@ -10,9 +10,9 @@ assign clk_n = ~clk;
 always 
   begin
 	 clk = 0;
-	 #10 ;
+	 #20 ;
 	 clk = 1;
-	 #10 ;
+	 #20 ;
   end
 
 wire [29:0] dramaddr;
@@ -66,14 +66,14 @@ cpu cpu0(
 /* hold the cpu in reset for a few clocks */
 initial begin
 	rst = 1;
-	#20 rst = 0;
+	#40 rst = 0;
 end
 
 initial begin
-	$readmemb("ram.txt", ram.bank0);
-	$readmemb("ram.txt", ram.bank1);
-	$readmemb("ram.txt", ram2.bank0);
-	$readmemb("ram.txt", ram2.bank1);
+	$readmemb("ram.bank0", ram.bank0);
+	$readmemb("ram.bank1", ram.bank1);
+	$readmemb("ram.bank2", ram2.bank0);
+	$readmemb("ram.bank3", ram2.bank1);
 end
 
 initial
@@ -87,7 +87,7 @@ initial begin
 	$dumpvars(0,testbench);
 end
 
-initial #20000 $finish;
+initial #300 $finish;
 
 endmodule
 

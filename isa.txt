@@ -19,18 +19,18 @@ instruction forms
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 	alu ops
-add			00  000000  d<4> a<4> b<4> x<12>	a + b
-sub			00  000001  d<4> a<4> b<4> x<12>	a - b
-rsb			00  000010  d<4> a<4> b<4> x<12>	b - a
-and			00  000011  d<4> a<4> b<4> x<12>	a & b
-or			00  000100  d<4> a<4> b<4> x<12>	a | b
-xor			00  000101  d<4> a<4> b<4> x<12>	a ^ b
+and			00  000000  d<4> a<4> b<4> x<12>	a & b
+or			00  000001  d<4> a<4> b<4> x<12>	a | b
+xor			00  000010  d<4> a<4> b<4> x<12>	a ^ b
+add			00  000011  d<4> a<4> b<4> x<12>	a + b
+sub			00  000100  d<4> a<4> b<4> x<12>	a - b
+rsb			00  000101  d<4> a<4> b<4> x<12>	b - a
 lsl			00  000110  d<4> a<4> b<4> x<12>	a << b
 lsr			00  000111  d<4> a<4> b<4> x<12>	a >> b
 asr			00  001000  d<4> a<4> b<4> x<12>	a >> b, sign extend
 not			00  001001  d<4> ign  b<4> x<12>	~b
-mov			00  001001  d<4> ign  b<4> x<12>	b
-mvt			00  001010  d<4> a<4> b<4> x<12>	a | (b << 16)
+mov			00  001010  d<4> ign  b<4> x<12>	b
+mvt			00  001011  d<4> a<4> b<4> x<12>	a | (b << 16)
 
 	Rd in this case is condition regs
 slt			00  001100  d<4> a<4> b<4> x<12>	a < b
