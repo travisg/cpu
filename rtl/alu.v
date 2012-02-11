@@ -10,12 +10,12 @@ reg [31:0] res;
 always @(op or a or b)
 begin
 	case (op)
-		4'b0000: res <= a & b;
-		4'b0001: res <= a | b;
-		4'b0010: res <= a ^ b;
-		4'b0011: res <= a + b;
-		4'b0100: res <= a - b;
-		4'b0101: res <= b - a;
+		4'b0000: res <= a + b;
+		4'b0001: res <= a - b;
+		4'b0010: res <= b - a;
+		4'b0011: res <= a & b;
+		4'b0100: res <= a | b;
+		4'b0101: res <= a ^ b;
 		4'b0110: res <= a << b;
 		4'b0111: res <= a >> b;
 		4'b1000: res <= a >> b; // sign extend

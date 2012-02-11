@@ -10,9 +10,9 @@ assign clk_n = ~clk;
 always 
   begin
 	 clk = 0;
-	 #20 ;
+	 #12 ;
 	 clk = 1;
-	 #20 ;
+	 #12 ;
   end
 
 wire [29:0] dramaddr;
@@ -87,7 +87,7 @@ initial begin
 	$dumpvars(0,testbench);
 end
 
-initial #300 $finish;
+initial #500 $finish;
 
 endmodule
 

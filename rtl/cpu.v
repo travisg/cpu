@@ -12,6 +12,8 @@ reg [29:0] memaddr;
 reg mem_re;
 reg mem_we;
 
+assign memdata = (mem_we && !mem_re) ? aluout : 32'bz;
+
 /* next pc */
 reg [29:0] pc;
 wire [29:0] nextpc;
@@ -30,6 +32,8 @@ mux2 #(30) nextpc_mux(
 `define STATE_LOAD  1
 `define STATE_STORE 2
 reg [1:0] state;
+
+reg control_latch_fetch;
 
 /* initial and reset situation */
 initial begin
@@ -59,19 +63,25 @@ begin
 	case (state)
 		`STATE_FETCH: begin
 			memaddr <= nextpc;
+			mem_we <= 0;
 			mem_re <= 1;
 			pc <= nextpc;	
 		end
 		`STATE_LOAD: begin
-
+			memaddr <= aluout;
+			mem_we <= 0;
+			mem_re <= 1;
 		end
 		`STATE_STORE: begin
-
+			memaddr <= aluout;
+			mem_re <= 0;
+			mem_we <= 0;
 		end
 	endcase
 end
 
-wire [31:0] ir = memdata;
+reg [31:0] ir;
+wire [1:0] decode_form = ir[31:30];
 wire [5:0] decode_op = ir[29:24];
 wire [3:0] decode_aluop = ir[27:24];
 wire [3:0] decode_rd = ir[23:20];
@@ -95,17 +105,30 @@ alu alu0(
 /* register file */
 wire [31:0] reg_a;
 wire [31:0] reg_b;
+wire [31:0] reg_wdata;
 reg control_reg_wb;
 
 regfile #(32, 4) regs(
 	.clk(clk),
 	.we(control_reg_wb),
 	.wsel(decode_rd),
-	.wdata(aluout),
+	.wdata(reg_wdata),
 	.asel(decode_ra),
 	.adata(reg_a),
 	.bsel(decode_rb),
 	.bdata(reg_b)
+	);
+
+reg control_cr_reg_wb;
+wire cr_reg;
+
+regfile_cr #(1, 4) crregs(
+	.clk(clk),
+	.we(control_cr_reg_wb),
+	.wsel(decode_rd),
+	.wdata(aluout[0]),
+	.asel(0),
+	.adata(cr_reg)
 	);
 
 /* alu a input mux */
@@ -132,30 +155,110 @@ mux2 #(32) alu_b_mux(
 	.out(alubin)
 	);
 
-always @(ir)
+/* register file write mux */
+reg reg_w_mux_sel;
+`define REG_W_SEL_ALU 1'b0
+`define REG_W_SEL_MEM 1'b1
+
+mux2 #(32) reg_w_mux(
+	.sel(reg_w_mux_sel),
+	.in0(aluout),
+	.in1(memdata),
+	.out(reg_wdata)
+	);
+
+/* latch in the instruction from the memory bus */
+always @(posedge clk_n)
 begin
-	case (ir[31:30])
-		2'b00: begin
-			$display("form 0");
-			alu_a_mux_sel <= `ALU_A_SEL_REG;
-			alu_b_mux_sel <= `ALU_B_SEL_REG;
-			control_reg_wb <= 1;
-		end
-		2'b01: begin
-			$display("form 1");
-			alu_a_mux_sel <= `ALU_A_SEL_REG;
-			alu_b_mux_sel <= `ALU_B_SEL_IMM;
-			control_reg_wb <= 1;
-		end
-		2'b10: begin
-
-		end
-		2'b11: begin
-
-		end
-	endcase
+	if (state == `STATE_FETCH) begin
+		ir <= memdata;
+	end
 end
 
+always @(ir)
+begin
+	if (state == `STATE_FETCH) begin
+		casex (decode_form)
+			2'b0?: begin /* form 0 and form 1 are very similar */
+				reg_w_mux_sel <= `REG_W_SEL_ALU;
+				if (decode_form == 0) begin
+					$display("form 0");
+					alu_a_mux_sel <= `ALU_A_SEL_REG;
+					alu_b_mux_sel <= `ALU_B_SEL_IMM;
+				end else begin
+					$display("form 1");
+					alu_a_mux_sel <= `ALU_A_SEL_REG;
+					alu_b_mux_sel <= `ALU_B_SEL_REG;
+				end
+
+				casex (decode_op)
+					/* pick out slt/seq/sc and make sure we writeback to the cr reg banks */
+					6'b0011??: begin
+						control_cr_reg_wb <= 1;
+						control_reg_wb <= 0;
+					end
+					default: begin
+						control_cr_reg_wb <= 0;
+						control_reg_wb <= 1;
+					end
+					/* load */
+					6'b01????: begin
+						$display("load");
+						control_cr_reg_wb <= 0;
+						control_reg_wb <= 0;
+						state <= `STATE_LOAD;
+					end
+					/* store */
+					6'b10????: begin
+						$display("store");
+						control_cr_reg_wb <= 0;
+						control_reg_wb <= 0;
+						state <= `STATE_STORE;
+					end
+				endcase
+			end
+			2'b10: begin
+				$display("form 2");
+
+			end
+			2'b11: begin
+				$display("form 3");
+
+			end
+		endcase
+	end
+end
+
+/* latch in the load data */
+always @(posedge clk_n)
+begin
+	if (state == `STATE_LOAD) begin
+		reg_w_mux_sel <= `REG_W_SEL_MEM;
+		state <= `STATE_FETCH;
+		control_reg_wb <= 1;
+	end
+end
+
+/* store logic */
+always @(posedge clk)
+begin
+	if (state == `STATE_STORE) begin
+		/* hack the ir to drive the alu to pass the store data through */
+		ir[19:16] <= decode_rd;
+		ir[15:0] <= 0;
+		alu_a_mux_sel <= `ALU_A_SEL_REG;
+		alu_b_mux_sel <= `ALU_B_SEL_IMM;
+		
+	end
+end
+
+always @(posedge clk_n)
+begin
+	if (state == `STATE_STORE) begin
+		state <= `STATE_FETCH;
+		mem_we <= 1;
+	end
+end
 
 endmodule 
 

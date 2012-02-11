@@ -13,39 +13,37 @@ instruction forms
 33222222222211111111110000000000
 10987654321098765432109876543210
 --------------------------------
-00ppppppddddaaaabbbbxxxxxxxxxxxx
-01ppppppddddaaaaiiiiiiiiiiiiiiii
+00ppppppddddaaaaiiiiiiiiiiiiiiii
+01ppppppddddaaaabbbbxxxxxxxxxxxx
 10ppppppiiiiiiiiiiiiiiiiiiiiiiii
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 	alu ops
-and			00  000000  d<4> a<4> b<4> x<12>	a & b
-or			00  000001  d<4> a<4> b<4> x<12>	a | b
-xor			00  000010  d<4> a<4> b<4> x<12>	a ^ b
-add			00  000011  d<4> a<4> b<4> x<12>	a + b
-sub			00  000100  d<4> a<4> b<4> x<12>	a - b
-rsb			00  000101  d<4> a<4> b<4> x<12>	b - a
-lsl			00  000110  d<4> a<4> b<4> x<12>	a << b
-lsr			00  000111  d<4> a<4> b<4> x<12>	a >> b
-asr			00  001000  d<4> a<4> b<4> x<12>	a >> b, sign extend
-not			00  001001  d<4> ign  b<4> x<12>	~b
-mov			00  001010  d<4> ign  b<4> x<12>	b
-mvt			00  001011  d<4> a<4> b<4> x<12>	a | (b << 16)
+add			0?  000000  d<4> a<4> b<4>,imm		a + b
+sub			0?  000001  d<4> a<4> b<4>,imm		a - b
+rsb			0?  000010  d<4> a<4> b<4>,imm		b - a
+and			0?  000011  d<4> a<4> b<4>,imm		a & b
+or			0?  000100  d<4> a<4> b<4>,imm		a | b
+xor			0?  000101  d<4> a<4> b<4>,imm		a ^ b
+lsl			0?  000110  d<4> a<4> b<4>,imm		a << b
+lsr			0?  000111  d<4> a<4> b<4>,imm		a >> b
+asr			0?  001000  d<4> a<4> b<4>,imm		a >> b, sign extend
+not			0?  001001  d<4> ign  b<4>,imm		~b
+mov			0?  001010  d<4> ign  b<4>,imm		b
+mvt			0?  001011  d<4> a<4> b<4>,imm		a | (b << 16)
 
 	Rd in this case is condition regs
-slt			00  001100  d<4> a<4> b<4> x<12>	a < b
-slte			00  001101  d<4> a<4> b<4> x<12>	a <= b
-seq			00  001110  d<4> a<4> b<4> x<12>	a == b
-sc			00  001111  d<4> xxxx xxxx xxxxx	1		- set condition register
+slt			0?  001100  d<4> a<4> b<4>,imm		a < b
+slte			0?  001101  d<4> a<4> b<4>,imm		a <= b
+seq			0?  001110  d<4> a<4> b<4>,imm		a == b
+sc			0?  001111  d<4> xxxx xxxx		1		- set condition register
 
 	load/store
-ldr			00  010000  d<4> a<4> b<4>		ldr Rd, [Ra + Rb]
-str	                00  100000  d<4> a<b> b<4>		str Rd, [Ra + Rb]
+ldr			0?  010000  d<4> a<4> b<4>,imm		ldr Rd, [Ra + Rb]
+str	                0?  100000  d<4> a<b> b<4>,imm		str Rd, [Ra + Rb]
 
 	unused
 			00  11xxxx  xxxxxxxxxxxxxxxxxxxxx
-
-imm versions of above	01  xxxxxx  d<4> a<4> imm<16>
 
 	branch
 bc			10  x0cr<4> imm<24>			- if (cr) { pc += (sign(imm << 2)) }
