@@ -24,7 +24,7 @@ reg nextpc_sel;
 mux2 #(30) nextpc_mux(
 	.sel(nextpc_sel),
 	.in0(pc + 30'd1),
-	.in1(aluout[29:0]),
+	.in1(cr_reg ? aluout[29:0] : pc + 30'd1),
 	.out(nextpc)
 	);
 
@@ -41,7 +41,7 @@ initial begin
 	memaddr <= 0;
 	mem_re <= 0;
 	mem_we <= 0;
-	nextpc_sel = `NEXTPC_SEL_PLUS1;
+	nextpc_sel <= `NEXTPC_SEL_PLUS1;
 	state <= `STATE_FETCH;
 	control_reg_wb <= 0;
 end
@@ -52,7 +52,7 @@ begin
 	memaddr <= 0;
 	mem_re <= 0;
 	mem_we <= 0;
-	nextpc_sel = `NEXTPC_SEL_PLUS1;
+	nextpc_sel <= `NEXTPC_SEL_PLUS1;
 	state <= `STATE_FETCH;
 	control_reg_wb <= 0;
 end
@@ -62,7 +62,7 @@ always @(posedge clk && !rst)
 begin
 	case (state)
 		`STATE_FETCH: begin
-			nextpc_sel = `NEXTPC_SEL_PLUS1;
+			nextpc_sel <= `NEXTPC_SEL_PLUS1;
 			memaddr <= nextpc;
 			mem_we <= 0;
 			mem_re <= 1;
@@ -95,12 +95,13 @@ wire [31:0] decode_imm24_signed = (ir[23]) ? { 8'b11111111, ir[23:0] } : { 8'b00
 wire [3:0] decode_cr = ir[27:24];
 
 /* alu */
+reg [3:0] aluop;
 wire [31:0] aluout;
 wire [31:0] aluain;
 wire [31:0] alubin;
 
 alu alu0(
-	.op(decode_aluop),
+	.op(aluop),
 	.a(aluain),
 	.b(alubin),
 	.res(aluout)
@@ -131,7 +132,7 @@ regfile_cr #(1, 4) crregs(
 	.we(control_cr_reg_wb),
 	.wsel(decode_rd),
 	.wdata(aluout[0]),
-	.asel(0),
+	.asel(decode_cr),
 	.adata(cr_reg)
 	);
 
@@ -190,6 +191,7 @@ begin
 	if (state == `STATE_FETCH) begin
 		casex (decode_form)
 			2'b0?: begin /* form 0 and form 1 are very similar */
+				aluop <= decode_aluop;
 				if (decode_form == 0) begin
 					$display("form 0");
 					alu_a_mux_sel <= `ALU_A_SEL_REG;
@@ -232,15 +234,17 @@ begin
 			end
 			2'b10: begin
 				$display("form 2 - branch");
+				aluop <= 0; // add
 				control_cr_reg_wb <= 0;
 				control_reg_wb <= 0;
 				alu_a_mux_sel <= `ALU_A_SEL_PC;
 				alu_b_mux_sel <= `ALU_B_SEL_IMM24;
 				nextpc_sel <= `NEXTPC_SEL_BRANCH;
-
+				// handle bl
 			end
 			2'b11: begin
 				$display("form 3 - undefined");
+				aluop <= 4'bxxxx;
 				control_cr_reg_wb <= 0;
 				control_reg_wb <= 0;
 				alu_a_mux_sel <= `ALU_A_SEL_DC;
