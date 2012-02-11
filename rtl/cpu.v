@@ -24,7 +24,7 @@ reg nextpc_sel;
 mux2 #(30) nextpc_mux(
 	.sel(nextpc_sel),
 	.in0(pc + 30'd1),
-	.in1(99),
+	.in1(aluout[29:0]),
 	.out(nextpc)
 	);
 
@@ -62,10 +62,11 @@ always @(posedge clk && !rst)
 begin
 	case (state)
 		`STATE_FETCH: begin
+			nextpc_sel = `NEXTPC_SEL_PLUS1;
 			memaddr <= nextpc;
 			mem_we <= 0;
 			mem_re <= 1;
-			pc <= nextpc;	
+			pc <= nextpc;
 		end
 		`STATE_LOAD: begin
 			memaddr <= aluout;
@@ -88,7 +89,10 @@ wire [3:0] decode_rd = ir[23:20];
 wire [3:0] decode_ra = ir[19:16];
 wire [3:0] decode_rb = ir[15:12];
 wire [15:0] decode_imm16 = ir[15:0];
+wire [31:0] decode_imm16_signed = (ir[15]) ? { 16'b1111111111111111, ir[15:0] } : { 16'b0000000000000000, ir[15:0] };
 wire [23:0] decode_imm24 = ir[23:0];
+wire [31:0] decode_imm24_signed = (ir[23]) ? { 8'b11111111, ir[23:0] } : { 8'b00000000, ir[23:0] };
+wire [3:0] decode_cr = ir[27:24];
 
 /* alu */
 wire [31:0] aluout;
@@ -133,6 +137,7 @@ regfile_cr #(1, 4) crregs(
 
 /* alu a input mux */
 reg alu_a_mux_sel;
+`define ALU_A_SEL_DC  1'bx
 `define ALU_A_SEL_REG 1'b0
 `define ALU_A_SEL_PC  1'b1
 
@@ -144,19 +149,24 @@ mux2 #(32) alu_a_mux(
 	);
 
 /* alu b input mux */
-reg alu_b_mux_sel;
-`define ALU_B_SEL_REG 1'b0
-`define ALU_B_SEL_IMM 1'b1
+reg [1:0] alu_b_mux_sel;
+`define ALU_B_SEL_DC    2'bxx
+`define ALU_B_SEL_REG   2'b00
+`define ALU_B_SEL_IMM16 2'b01
+`define ALU_B_SEL_IMM24 2'b10
 
-mux2 #(32) alu_b_mux(
+mux4 #(32) alu_b_mux(
 	.sel(alu_b_mux_sel),
 	.in0(reg_b),
 	.in1({ 16'b0, decode_imm16 }),
+	.in2(decode_imm24_signed),
+	.in3(0),
 	.out(alubin)
 	);
 
 /* register file write mux */
 reg reg_w_mux_sel;
+`define REG_W_SEL_DC  1'bx
 `define REG_W_SEL_ALU 1'b0
 `define REG_W_SEL_MEM 1'b1
 
@@ -180,11 +190,10 @@ begin
 	if (state == `STATE_FETCH) begin
 		casex (decode_form)
 			2'b0?: begin /* form 0 and form 1 are very similar */
-				reg_w_mux_sel <= `REG_W_SEL_ALU;
 				if (decode_form == 0) begin
 					$display("form 0");
 					alu_a_mux_sel <= `ALU_A_SEL_REG;
-					alu_b_mux_sel <= `ALU_B_SEL_IMM;
+					alu_b_mux_sel <= `ALU_B_SEL_IMM16;
 				end else begin
 					$display("form 1");
 					alu_a_mux_sel <= `ALU_A_SEL_REG;
@@ -196,16 +205,19 @@ begin
 					6'b0011??: begin
 						control_cr_reg_wb <= 1;
 						control_reg_wb <= 0;
+						reg_w_mux_sel <= `REG_W_SEL_DC;
 					end
 					default: begin
 						control_cr_reg_wb <= 0;
 						control_reg_wb <= 1;
+						reg_w_mux_sel <= `REG_W_SEL_ALU;
 					end
 					/* load */
 					6'b01????: begin
 						$display("load");
 						control_cr_reg_wb <= 0;
 						control_reg_wb <= 0;
+						reg_w_mux_sel <= `REG_W_SEL_DC;
 						state <= `STATE_LOAD;
 					end
 					/* store */
@@ -213,17 +225,27 @@ begin
 						$display("store");
 						control_cr_reg_wb <= 0;
 						control_reg_wb <= 0;
+						reg_w_mux_sel <= `REG_W_SEL_DC;
 						state <= `STATE_STORE;
 					end
 				endcase
 			end
 			2'b10: begin
-				$display("form 2");
+				$display("form 2 - branch");
+				control_cr_reg_wb <= 0;
+				control_reg_wb <= 0;
+				alu_a_mux_sel <= `ALU_A_SEL_PC;
+				alu_b_mux_sel <= `ALU_B_SEL_IMM24;
+				nextpc_sel <= `NEXTPC_SEL_BRANCH;
 
 			end
 			2'b11: begin
-				$display("form 3");
-
+				$display("form 3 - undefined");
+				control_cr_reg_wb <= 0;
+				control_reg_wb <= 0;
+				alu_a_mux_sel <= `ALU_A_SEL_DC;
+				alu_b_mux_sel <= `ALU_B_SEL_DC;
+				reg_w_mux_sel <= `REG_W_SEL_DC;
 			end
 		endcase
 	end
@@ -233,9 +255,9 @@ end
 always @(posedge clk_n)
 begin
 	if (state == `STATE_LOAD) begin
+		control_reg_wb <= 1;
 		reg_w_mux_sel <= `REG_W_SEL_MEM;
 		state <= `STATE_FETCH;
-		control_reg_wb <= 1;
 	end
 end
 
@@ -247,8 +269,7 @@ begin
 		ir[19:16] <= decode_rd;
 		ir[15:0] <= 0;
 		alu_a_mux_sel <= `ALU_A_SEL_REG;
-		alu_b_mux_sel <= `ALU_B_SEL_IMM;
-		
+		alu_b_mux_sel <= `ALU_B_SEL_IMM16;
 	end
 end
 
