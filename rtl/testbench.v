@@ -55,7 +55,6 @@ reg	rst;
 
 cpu cpu0(
 	.clk(clk),
-	.clk_n(clk_n),
 	.rst(rst),
 	.mem_re(dram_re),
 	.mem_we(dram_we),

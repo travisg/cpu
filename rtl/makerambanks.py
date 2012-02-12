@@ -2,8 +2,6 @@
 
 import sys
 
-print sys.argv
-
 try:
 	infile = open("ram.txt", "r")
 except:
@@ -20,14 +18,25 @@ except:
 	print "error opening output files"
 	sys.exit(1)
 
-print infile
-print out
+def readfield (f, line, count, index):
+	while count > 0:
+		c = line[index];
+		index = index + 1;
+		if c not in { '0', '1' }:
+			continue
+		f.write(c)
+		count = count - 1;
+	
+	f.write('\n');
+	return index
 
 for line in infile:
+	if line[0] in { '#', ';' }:
+		continue
 
-	out[0].write(line[0:8] + '\n')
-	out[1].write(line[8:16] + '\n')
-	out[2].write(line[16:24] + '\n')
-	out[3].write(line[24:32] + '\n')
-		
+	index = 0;
+	index = readfield(out[0], line, 8, index)
+	index = readfield(out[1], line, 8, index)
+	index = readfield(out[2], line, 8, index)
+	index = readfield(out[3], line, 8, index)
 
