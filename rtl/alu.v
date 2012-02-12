@@ -2,10 +2,8 @@ module alu(
 	input [3:0] op,
 	input [31:0] a,
 	input [31:0] b,
-	output [31:0] res
+	output reg [31:0] res
 );
-
-reg [31:0] res;
 
 always @(op or a or b)
 begin

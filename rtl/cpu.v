@@ -2,15 +2,11 @@ module	cpu(
 	input clk,
 	input clk_n,
 	input rst,
-	output mem_re,
-	output mem_we,
-	output [29:0] memaddr,
+	output reg mem_re,
+	output reg mem_we,
+	output reg [29:0] memaddr,
 	inout [31:0] memdata
 );
-
-reg [29:0] memaddr;
-reg mem_re;
-reg mem_we;
 
 assign memdata = (mem_we && !mem_re) ? aluout : 32'bz;
 
@@ -28,9 +24,9 @@ mux2 #(30) nextpc_mux(
 	.out(nextpc)
 	);
 
-`define STATE_FETCH 0
-`define STATE_LOAD  1
-`define STATE_STORE 2
+`define STATE_FETCH 2'b00
+`define STATE_LOAD  2'b01
+`define STATE_STORE 2'b10
 reg [1:0] state;
 
 reg control_latch_fetch;
