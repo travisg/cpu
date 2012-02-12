@@ -1,11 +1,9 @@
 properties:
 32 bit instructions
 16 registers
-8  condition regs
 3 address
 
 r0-r15 - 32bit
-cr0-cr8. cr0n-cr8n - 1 bit, with paired reg negated
 
 LR = r15
 
@@ -13,47 +11,48 @@ instruction forms
 33222222222211111111110000000000
 10987654321098765432109876543210
 --------------------------------
-00ppppppddddaaaaiiiiiiiiiiiiiiii
-01ppppppddddaaaabbbbxxxxxxxxxxxx
-10ppppppiiiiiiiiiiiiiiiiiiiiiiii
+00ppddddppppaaaaiiiiiiiiiiiiiiii
+01ppddddppppaaaabbbbxxxxxxxxxxxx
+10ppddddiiiiiiiiiiiiiiiiiiiiiiii
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 	alu ops
-add			0?  000000  d<4> a<4> b<4>,imm		a + b
-sub			0?  000001  d<4> a<4> b<4>,imm		a - b
-rsb			0?  000010  d<4> a<4> b<4>,imm		b - a
-and			0?  000011  d<4> a<4> b<4>,imm		a & b
-or			0?  000100  d<4> a<4> b<4>,imm		a | b
-xor			0?  000101  d<4> a<4> b<4>,imm		a ^ b
-lsl			0?  000110  d<4> a<4> b<4>,imm		a << b
-lsr			0?  000111  d<4> a<4> b<4>,imm		a >> b
-asr			0?  001000  d<4> a<4> b<4>,imm		a >> b, sign extend
-not			0?  001001  d<4> ign  b<4>,imm		~b
-mov			0?  001010  d<4> ign  b<4>,imm		b
-mvt			0?  001011  d<4> a<4> b<4>,imm		a | (b << 16)
+add			0?  00 d<4> 0000 a<4> b<4>,imm		a + b
+sub			0?  00 d<4> 0001 a<4> b<4>,imm		a - b
+rsb			0?  00 d<4> 0010 a<4> b<4>,imm		b - a
+and			0?  00 d<4> 0011 a<4> b<4>,imm		a & b
+or			0?  00 d<4> 0100 a<4> b<4>,imm		a | b
+xor			0?  00 d<4> 0101 a<4> b<4>,imm		a ^ b
+lsl			0?  00 d<4> 0110 a<4> b<4>,imm		a << b
+lsr			0?  00 d<4> 0111 a<4> b<4>,imm		a >> b
+asr			0?  00 d<4> 1000 a<4> b<4>,imm		a >> b, sign extend
+mov			0?  00 d<4> 1001 ign  b<4>,imm		b
+mvb			0?  00 d<4> 1010 ign  b<4>,imm		b & 0xffff
+mvt			0?  00 d<4> 1011 a<4> b<4>,imm		a | (b << 16)
 
-	Rd in this case is condition regs
-slt			0?  001100  d<4> a<4> b<4>,imm		a < b
-slte			0?  001101  d<4> a<4> b<4>,imm		a <= b
-seq			0?  001110  d<4> a<4> b<4>,imm		a == b
-sc			0?  001111  d<4> xxxx xxxx		1		- set condition register
+slt			0?  00 d<4> 1100 a<4> b<4>,imm		a < b
+slte		0?  00 d<4> 1101 a<4> b<4>,imm		a <= b
+seq			0?  00 d<4> 1110 a<4> b<4>,imm		a == b
 
 	load/store
-ldr			0?  010000  d<4> a<4> b<4>,imm		ldr Rd, [Ra + Rb]
-str	                0?  100000  d<4> a<b> b<4>,imm		str Rd, [Ra + Rb]
+ldr			0?  01 d<4> 0000 a<4> b<4>,imm		ldr Rd, [Ra + Rb]
+str	        0?  10 d<4> 0000 a<b> b<4>,imm		str Rd, [Ra + Rb]
 
 	unused
 			00  11xxxx  xxxxxxxxxxxxxxxxxxxxx
 
 	branch
-bc			10  x0cr<4> imm<24>			- if (cr) { pc += (sign(imm << 2)) }
-blc			10  x1cr<4> imm<24>			- if (cr) { lr = pc + 4, pc += (sign(imm << 2)) }
+bc			10  00 d<4> imm<24>			- if (r)  { pc += (sign(imm << 2)) }
+blc			10  01 d<4> imm<24>			- if (r)  { lr = pc + 4, pc += (sign(imm << 2)) }
+bnc			10  10 d<4> imm<24>			- if (!r) { pc += (sign(imm << 2)) }
+blnc		10  11 d<4> imm<24>			- if (!r) { lr = pc + 4, pc += (sign(imm << 2)) }
 
 	unused
 			11  xxxxxxx xxxxxxxxxxxxxxxxxxxxx
 
 pseudo instructions:
 mvn	a, b	-	rsb a, b, #0
+not	a, b	-	xor a, b, #0
 
 common algorithms:
 
