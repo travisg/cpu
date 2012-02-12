@@ -1,0 +1,4 @@
+*.bak
+testbench
+testbench.vcd
+ram.bank*
