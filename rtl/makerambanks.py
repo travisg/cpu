@@ -14,6 +14,7 @@ try:
 	out.append(open("ram.bank2", "w+"))
 	out.append(open("ram.bank1", "w+"))
 	out.append(open("ram.bank0", "w+"))
+	out.append(open("ram.allbanks", "w+"))
 except:
 	print "error opening output files"
 	sys.exit(1)
@@ -39,4 +40,6 @@ for line in infile:
 	index = readfield(out[1], line, 8, index)
 	index = readfield(out[2], line, 8, index)
 	index = readfield(out[3], line, 8, index)
+
+	readfield(out[4], line, 32, 0);
 

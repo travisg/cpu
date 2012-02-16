@@ -1,8 +1,8 @@
 module	cpu(
 	input clk,
 	input rst,
-	output reg mem_re,
-	output reg mem_we,
+	output mem_re,
+	output mem_we,
 	output reg [29:0] memaddr,
 	inout [31:0] memdata
 );
@@ -14,7 +14,7 @@ reg [29:0] pc;
 wire [29:0] pcplus1 = pc + 30'd1;
 reg [29:0] nextpc;
 
-always @(control_branch or control_branch_neg or reg_a or aluout or pc)
+always @(control_branch or control_branch_neg or reg_a or aluout or pcplus1)
 begin
 	if (control_branch) begin
 		if (control_branch_neg) begin
@@ -33,6 +33,7 @@ end
 `define STATE_LOAD  2'd2
 `define STATE_STORE 2'd3
 reg [1:0] state;
+reg goto_fetch_state;
 
 reg control_load;
 reg control_store;
@@ -41,65 +42,69 @@ reg control_branch_neg;
 
 /* top level states */
 reg [1:0] nextstate;
-always @(state or control_load or control_store)
+always @(goto_fetch_state or control_load or control_store)
 begin
-	if (state != `STATE_FETCH)
+	if (goto_fetch_state)
 		nextstate = `STATE_FETCH;
 	else if (control_load)
 		nextstate = `STATE_LOAD;
 	else if (control_store)
 		nextstate = `STATE_STORE;
 	else
-		nextstate = state;
+		nextstate = `STATE_FETCH;
 end
 
-always @(clk)
+assign mem_we = (state == `STATE_STORE) && !clk;
+assign mem_re = ((state == `STATE_FETCH) || (state == `STATE_LOAD));
+
+always @(posedge clk)
 begin
 	if (rst) begin
 		pc <= 30'b111111111111111111111111111111;
 		memaddr <= 0;
-		mem_re <= 0;
-		mem_we <= 0;
 		state <= `STATE_RST;
-		ir <= 0;
 	end else begin
-		if (clk) begin
-			state <= nextstate;
-			case (nextstate)
-				`STATE_FETCH: begin
-					memaddr <= nextpc;
-					mem_we <= 0;
-					mem_re <= 1;
-					pc <= nextpc;
-				end
-				`STATE_LOAD: begin
-					memaddr <= aluout[29:0];
-					mem_we <= 0;
-					mem_re <= 1;
-				end
-				`STATE_STORE: begin
-					memaddr <= aluout[29:0];
-					mem_re <= 0;
-					mem_we <= 0;
-				end
-				default: begin
-				end
-			endcase
-		end else begin
-			/* negative side of clk */
-			case (state)
-				`STATE_FETCH: begin
-					ir <= memdata;
-				end
-				`STATE_LOAD: begin
-				end
-				`STATE_STORE: begin
-					mem_we <= 1;
-				end
-				default: begin
-				end
-			endcase
-		end
+		state <= nextstate;
+		case (nextstate)
+			`STATE_FETCH: begin
+				memaddr <= nextpc;
+				pc <= nextpc;
+			end
+			`STATE_LOAD: begin
+				memaddr <= aluout[29:0];
+			end
+			`STATE_STORE: begin
+				memaddr <= aluout[29:0];
+			end
+			default: begin
+				memaddr <= 30'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+			end
+		endcase
+	end
+end
+
+always @(negedge clk)
+begin
+	if (rst) begin
+		ir <= 0;
+		goto_fetch_state <= 1;
+	end else begin
+		/* negative side of clk */
+		case (state)
+			`STATE_FETCH: begin
+				ir <= memdata;
+				goto_fetch_state <= 0;
+			end
+			`STATE_LOAD: begin
+				goto_fetch_state <= 1;
+			end
+			`STATE_STORE: begin
+				goto_fetch_state <= 1;
+			end
+			`STATE_RST: begin
+				goto_fetch_state <= 1;
+			end
+		endcase
 	end
 end
 
@@ -178,7 +183,7 @@ mux4 #(32) reg_w_mux(
 	.sel(reg_w_mux_sel),
 	.in0(aluout),
 	.in1(memdata),
-	.in2(pcplus1),
+	.in2({ pcplus1, 2'b0 }),
 	.in3(0),
 	.out(reg_wdata)
 	);
