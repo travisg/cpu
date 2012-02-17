@@ -3,7 +3,7 @@ TARGET := asm
 BUILDDIR := build-$(TARGET)
 
 # compiler flags, default libs to link against
-COMPILEFLAGS := -g -O0 -Wall
+COMPILEFLAGS := -g -O0 -Wall -I../lib
 CFLAGS :=
 CPPFLAGS :=
 ASMFLAGS :=
@@ -37,11 +37,17 @@ OBJS := $(addprefix $(BUILDDIR)/,$(OBJS))
 
 DEPS := $(OBJS:.o=.d)
 
-$(BUILDDIR)/$(TARGET):  $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LDLIBS)
+LIBS := ../lib/build-libcpu/libcpu.a
+
+$(BUILDDIR)/$(TARGET): $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LIBS) $(LDLIBS)
+
+../lib/build-cpu/libcpu.a:
+	$(MAKE) -C ../lib
 
 clean:
 	rm -f $(OBJS) $(DEPS) $(TARGET) $(BUILDDIR)/*.c $(BUILDDIR)/*.cpp
+	$(MAKE) -C ../lib clean
 
 spotless:
 	rm -rf build-*

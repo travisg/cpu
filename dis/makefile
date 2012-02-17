@@ -1,9 +1,9 @@
 
-TARGET := emu
+TARGET := dis
 BUILDDIR := build-$(TARGET)
 
 # compiler flags, default libs to link against
-COMPILEFLAGS := -g -O4 -Wall -I../lib
+COMPILEFLAGS := -g -O0 -Wall -I../lib
 CFLAGS :=
 CPPFLAGS :=
 ASMFLAGS :=
@@ -26,9 +26,7 @@ CPPFLAGS += $(COMPILEFLAGS)
 ASMFLAGS += $(COMPILEFLAGS)
 
 OBJS := \
-	main.o \
-	Mem.o \
-	Cpu16.o \
+	main.o
 
 OBJS := $(addprefix $(BUILDDIR)/,$(OBJS))
 
@@ -51,6 +49,21 @@ spotless:
 
 # makes sure the target dir exists
 MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+
+$(BUILDDIR)/%.tab.cpp: %.ypp
+	@$(MKDIR)
+	@echo generating $<
+	@bison -o $@ --debug $<
+
+$(BUILDDIR)/lex.yy.c: scanner.l
+	@$(MKDIR)
+	@echo generating $@
+	@flex -o $@ $<
+
+$(BUILDDIR)/%.o: $(BUILDDIR)/%.tab.cpp $(BUILDDIR)/lex.yy.c
+	@$(MKDIR)
+	@echo compiling $<
+	@$(CC) $(CPPFLAGS) -I. -I$(BUILDDIR) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
 
 $(BUILDDIR)/%.o: %.c
 	@$(MKDIR)
