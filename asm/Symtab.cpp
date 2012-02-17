@@ -30,10 +30,9 @@ Symtab::Symtab()
 
 Symtab::~Symtab()
 {
-	for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
-		delete (*i);
-		symlist.erase(i);
-	}
+//	for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
+//		symlist.erase(i);
+//	}
 }
 
 Sym *Symtab::Lookup(const std::string &str)

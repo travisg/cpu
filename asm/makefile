@@ -3,7 +3,7 @@ TARGET := asm
 BUILDDIR := build-$(TARGET)
 
 # compiler flags, default libs to link against
-COMPILEFLAGS := -g -O1 -Wall
+COMPILEFLAGS := -g -O0 -Wall
 CFLAGS :=
 CPPFLAGS :=
 ASMFLAGS :=
