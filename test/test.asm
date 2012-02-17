@@ -1,59 +1,72 @@
+start:
 	add		r0, r0, r0
 ; what
 what:
 	add		r0, r1, r2
 	add		r1, r2, #3
 	add		r0, r1, what
-	li		r0, #1
-	li		r0, #0
-	li		r0, #-1
-	li		r0, #0x54
+	mov		r0, #1
+	mov		r0, #0
+	mov		r0, #-1
+	mov		r0, #0x54
 	mov		r0, r1
-	li		r5, what
+	mov		r5, what
+	not		r0, r1
+	mvn		r0, r1
 
-	b		#2
+	b		#4
 
-	b		shit
+	b		start
 	and		r0, r0, r0
 
 shit:
-	li		r0, #3
+	mov		r0, #3
 
 loop0:
 	sub		r0, r0, #1
 	bnz		r0, loop0
 
-	li		r1, #0x88
+	mov		r1, #0x88
 	ldr		r0, [r1]
 	ldr		r0, [r1,#4]
 	ldr		r0, [r1,#-4]
-	ldr		r0, [r1],#4+
-	ldr		r0, [r1],#4+
-	ldr		r0, [sp],#4+
-	ldr		r0, [pc]
-	ldr		r0, [pc, #4]
-	ldr		r0, [pc, #-4]
-	str		r0, [sp,#4]+
+	ldr		r0, [sp,#4]
+	ldr		r0, [lr,#4]
+	ldr		r0, [r2, r3]
 	b		loop0
 
 	add		r0, r0, r0
 	b		r5
 
-	b		sp
-	b		lr
-	bl		lr
-	b		#-2
-	b		#-2
-	b		#2
-	bl		#0x1024
-	bz		r1, #-44
-	bnz		r5, #46
-	bz		r0, #0
-	bnz		r0, #2
-	bz		r3, what
-	bnz		r3, what
-	b		what
-	bl		what
+	; imm branches
+	b		#28
+	bl		#28
 
-	push	r0
-	pop		r1
+	; identifier branches
+	b		start
+	bl		start
+
+	; one register branches
+	b		r9
+	bl		r9
+
+	; two register branches
+	bz		r9, r1
+	bnz		r9, r1
+	blz		r9, r1
+	blnz	r9, r1
+
+	; reg, imm branches
+	bz		r9, #28
+	bnz		r9, #28
+	blz		r9, #28
+	blnz	r9, #28
+
+	; reg, identifier branches
+	bz		r9, start
+	bnz		r9, start
+	blz		r9, start
+	blnz	r9, start
+
+;	push	r0
+;	pop		r1

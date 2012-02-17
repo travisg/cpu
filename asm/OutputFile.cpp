@@ -64,6 +64,20 @@ off_t OutputFile::Append(uint16_t word)
 	return pos;
 }
 
+off_t OutputFile::Append(uint32_t word)
+{
+	assert(fp);
+
+	word = htons(word);
+
+	fseeko(fp, pos, SEEK_SET);
+	fwrite(&word, sizeof(word), 1, fp);
+
+	pos = ftello(fp);
+
+	return pos;
+}
+
 int OutputFile::WriteAt(off_t offset, uint16_t word)
 {
 	assert(fp);
@@ -79,6 +93,34 @@ int OutputFile::WriteAt(off_t offset, uint16_t word)
 }
 
 int OutputFile::ReadAt(off_t offset, uint16_t *word)
+{
+	assert(fp);
+
+//	printf("ReadAt offset 0x%llx, word %p\n", offset, word);
+
+	fseeko(fp, offset, SEEK_SET);
+	fread(word, sizeof(*word), 1, fp);
+
+	*word = ntohs(*word);
+
+	return 0;
+}
+
+int OutputFile::WriteAt(off_t offset, uint32_t word)
+{
+	assert(fp);
+
+//	printf("WriteAt offset 0x%llx, word 0x%x\n", offset, word);
+
+	word = htons(word);
+
+	fseeko(fp, offset, SEEK_SET);
+	fwrite(&word, sizeof(word), 1, fp);
+
+	return 0;
+}
+
+int OutputFile::ReadAt(off_t offset, uint32_t *word)
 {
 	assert(fp);
 

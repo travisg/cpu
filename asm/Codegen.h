@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Travis Geiselbrecht
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -36,9 +36,9 @@ public:
 	unsigned int num;
 
 	enum {
-		SP = 6,
-		LR = 7,
-		PC = 8
+		SP = 14,
+		LR = 15,
+		PC = 16
 	};
 };
 
@@ -69,27 +69,20 @@ public:
 	void Emit1Addr(Sym *ins, Reg r1);
 	void Emit1Addr(Sym *ins, int imm);
 	void Emit1Addr(Sym *ins, Sym *identifier);
-	void EmitLoadStore2Reg(Sym *ins, Reg r1, Reg r2);
 	void EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm);
-	void EmitLoadStore2RegImmPostUpdate(Sym *ins, Reg r1, Reg r2, int imm);
-	void EmitLoadStore2RegImmPostIndexUpdate(Sym *ins, Reg r1, Reg r2, int imm);
+	void EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3);
 
 	void SetOutput(OutputFile *f);
 
 	void FixupPass();
 
 	enum fixupType {
-		FIXUP_IMM3,
-		FIXUP_IMM5,
-		FIXUP_IMM9,
-		FIXUP_IMM9_REL,
-		FIXUP_IMM12_REL,
-		FIXUP_IMM12_TOP,
-		FIXUP_IMM12_BOTTOM,
+		FIXUP_IMM16,
+		FIXUP_IMM22_REL,
 	};
 
 protected:
-	void EmitInstruction(uint16_t ins);
+	void EmitInstruction(uint32_t ins);
 	
 	Label *LookupLabel(const std::string &name);
 

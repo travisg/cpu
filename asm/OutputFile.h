@@ -35,11 +35,14 @@ public:
 	int OpenFile(const std::string &name);
 
 	off_t Append(uint16_t word);
+	off_t Append(uint32_t word);
 
 	off_t Align(unsigned int alignment);
 
 	int WriteAt(off_t offset, uint16_t word);
 	int ReadAt(off_t offset, uint16_t *word);
+	int WriteAt(off_t offset, uint32_t word);
+	int ReadAt(off_t offset, uint32_t *word);
 
 private:
 	FILE *fp;

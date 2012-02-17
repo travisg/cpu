@@ -131,22 +131,17 @@ ins_1addr		:	TOK_KEYWORD TOK_REGISTER
 ins_loadstore	:	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ']'
 				{
 					//printf("load/store reg,[reg]\n");
-					gCodegen->EmitLoadStore2Reg($1, $2, $5);
+					gCodegen->EmitLoadStore2RegImm($1, $2, $5, 0);
 				}
 				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL ']'
 				{
 					//printf("load/store reg,[reg,#imm]\n");
 					gCodegen->EmitLoadStore2RegImm($1, $2, $5, $8);
 				}
-				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ',' '#' TOK_INTEGER_LITERAL ']' '+'
+				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ',' TOK_REGISTER ']'
 				{
-					//printf("load/store reg,[reg,#imm]+\n");
-					gCodegen->EmitLoadStore2RegImmPostUpdate($1, $2, $5, $8);
-				}
-				|	TOK_KEYWORD TOK_REGISTER ',' '[' TOK_REGISTER ']' ',' '#' TOK_INTEGER_LITERAL '+'
-				{
-					//printf("load/store reg,[reg],#imm+\n");
-					gCodegen->EmitLoadStore2RegImmPostIndexUpdate($1, $2, $5, $9);
+					//printf("load/store reg,[reg,#imm]\n");
+					gCodegen->EmitLoadStore3Reg($1, $2, $5, $7);
 				};
 
 %%

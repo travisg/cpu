@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Travis Geiselbrecht
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -22,6 +22,8 @@
  */
 %{
 
+#include <Codegen.h>
+
 %}
 
 %option yylineno
@@ -40,15 +42,15 @@ HEXDIGIT		[A-Fa-f0-9]
 					return TOK_REGISTER;
 				}
 pc|PC			{
-					yylval.reg.num = 8; // program counter
+					yylval.reg.num = Reg::PC; // program counter
 					return TOK_REGISTER;
 				}
 lr|LR			{
-					yylval.reg.num = 7;
+					yylval.reg.num = Reg::LR;
 					return TOK_REGISTER;
 				}
 sp|SP			{
-					yylval.reg.num = 6;
+					yylval.reg.num = Reg::SP;
 					return TOK_REGISTER;
 				}
 
