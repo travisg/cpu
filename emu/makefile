@@ -39,7 +39,7 @@ LIBS := ../lib/build-libcpu/libcpu.a
 $(BUILDDIR)/$(TARGET): $(OBJS) $(LIBS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LIBS) $(LDLIBS)
 
-../lib/build-cpu/libcpu.a:
+../lib/build-libcpu/libcpu.a:
 	$(MAKE) -C ../lib
 
 clean:

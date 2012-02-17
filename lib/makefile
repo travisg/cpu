@@ -36,7 +36,7 @@ $(BUILDDIR)/$(TARGET).a: $(OBJS)
 	$(AR) rc $@ $(OBJS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(TARGET) $(BUILDDIR)/*.c $(BUILDDIR)/*.cpp
+	rm -f $(OBJS) $(DEPS) $(BUILDDIR)/$(TARGET).a $(BUILDDIR)/*.c $(BUILDDIR)/*.cpp
 
 spotless:
 	rm -rf build-*
