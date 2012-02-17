@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
 //		printf("0x%08x\n", word);
 
-		std::string str = d.Dissassemble(word);
+		std::string str = d.Dissassemble(word, Dis::DIS_FLAG_SHOWTARGET, addr);
 		printf("0x%08x: %08x  %s\n", addr, word, str.c_str());
 
 		addr += 4;

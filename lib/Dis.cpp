@@ -4,7 +4,7 @@
 #include "Dis.h"
 #include "bits.h"
 
-std::string Dis::Dissassemble(uint32_t word)
+std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 {
 	char ins_str[256];
 	memset(ins_str, 0, sizeof(ins_str));
@@ -14,6 +14,11 @@ std::string Dis::Dissassemble(uint32_t word)
 #define ADDNUM(num) do { \
 	char _temp[16]; \
 	snprintf(_temp, sizeof(_temp), "%d", num); \
+	ADDSTR(_temp); \
+} while(0)
+#define ADDHEX(num) do { \
+	char _temp[16]; \
+	snprintf(_temp, sizeof(_temp), "0x%x", num); \
 	ADDSTR(_temp); \
 } while(0)
 #define ADDREG(num) do { ADDSTR("r"); ADDNUM(num); } while (0)
@@ -56,9 +61,12 @@ std::string Dis::Dissassemble(uint32_t word)
 				ADDREG(Rd);
 				ADDSTR(", ");
 
-				// XXX dont display this on mov and mvb
-				ADDREG(Ra);
-				ADDSTR(", ");
+				// don't display this on mov and mvb
+				if (aluop != 9 && aluop != 10) {
+					ADDREG(Ra);
+					ADDSTR(", ");
+				}
+
 				if (form == 0) { // imm
 					ADDSTR("#");
 					ADDNUM(imm16_signed);
@@ -112,6 +120,17 @@ loadstore_shared:
 			} else { // label
 				ADDSTR("#");
 				ADDNUM(imm22_signed);
+
+				// if they asked us, calculate the address of the target relative to the pc
+				if (flags & DIS_FLAG_SHOWTARGET) {
+					uint32_t target;
+
+					target = curaddr + 4 + imm22_signed;
+
+					ADDSTR(" (");
+					ADDHEX(target);
+					ADDSTR(")");
+				}
 			}
 			break;
 		case 3: // undefined
