@@ -73,7 +73,7 @@ std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 				} else {
 					ADDREG(Rb);
 				}
-			} else if (op == 1 || op == 2) { // load/store
+			} else if (op == 1) { // load/store
 				ADDSTR("ldr ");
 				goto loadstore_shared;
 			} else if (op == 2) { // store

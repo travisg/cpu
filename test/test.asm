@@ -33,6 +33,12 @@ loop0:
 	ldr		r0, [sp,#4]
 	ldr		r0, [lr,#4]
 	ldr		r0, [r2, r3]
+	str		r0, [r1]
+	str		r0, [r1,#4]
+	str		r0, [r1,#-4]
+	str		r0, [sp,#4]
+	str		r0, [lr,#4]
+	str		r0, [r2, r3]
 	b		loop0
 
 	add		r0, r0, r0
