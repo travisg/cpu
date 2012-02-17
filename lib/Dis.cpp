@@ -25,9 +25,9 @@
 #include <cstdio>
 #include "Dis.h"
 #include "bits.h"
-#include "Cpu.h"
+#include "Cpu32Info.h"
 
-using namespace Cpu32;
+using namespace Cpu32Info;
 
 std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 {

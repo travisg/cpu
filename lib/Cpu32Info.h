@@ -27,7 +27,7 @@
 #include "bits.h"
 
 /* info and helper routines for the cpu32 */
-namespace Cpu32 {
+namespace Cpu32Info {
 	// special registers
 	enum {
 		SP = 14,

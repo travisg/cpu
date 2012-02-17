@@ -30,9 +30,9 @@
 #include "OutputFile.h"
 #include "util.h"
 
-#include "Cpu.h"
+#include "Cpu32Info.h"
 
-using namespace Cpu32;
+using namespace Cpu32Info;
 
 extern void yyerror(const char *str);
 

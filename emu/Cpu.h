@@ -20,8 +20,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef __CPU_H
-#define __CPU_H
+#pragma once
 
 #include "Mem.h"
 
@@ -38,6 +37,4 @@ public:
 protected:
 	Mem *mem;
 };
-
-#endif
 

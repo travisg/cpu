@@ -27,7 +27,7 @@
 #include <ostream>
 #include <list>
 
-#include "Cpu.h"
+#include "Cpu32Info.h"
 
 class Sym;
 class Symtab;
