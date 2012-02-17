@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Travis Geiselbrecht
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -24,7 +24,9 @@
 #include <cstring>
 
 #include "Mem.h"
-#include "Cpu16.h"
+#include "Cpu32.h"
+
+#include "Cpu.h"
 
 static void usage(int argc, char **argv)
 {

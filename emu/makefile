@@ -28,7 +28,7 @@ ASMFLAGS += $(COMPILEFLAGS)
 OBJS := \
 	main.o \
 	Mem.o \
-	Cpu16.o \
+	Cpu32.o \
 
 OBJS := $(addprefix $(BUILDDIR)/,$(OBJS))
 

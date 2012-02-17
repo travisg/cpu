@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cassert>
 
-#include "Cpu16.h"
+#include "Cpu32.h"
 #include "bits.h"
 
 typedef uint32_t word;
