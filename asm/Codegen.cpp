@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Travis Geiselbrecht
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -29,6 +29,10 @@
 #include "Sym.h"
 #include "OutputFile.h"
 #include "util.h"
+
+#include "Cpu.h"
+
+using namespace Cpu32;
 
 extern void yyerror(const char *str);
 
@@ -169,51 +173,6 @@ Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 
 	return f;
 }
-
-#define FORM_SHIFT (30)
-#define OP_SHIFT   (28)
-#define RD_SHIFT   (24)
-#define ALUOP_SHIFT (20)
-#define RA_SHIFT   (16)
-#define RB_SHIFT   (12)
-#define IMM16_SHIFT   (0)
-#define IMM22_SHIFT   (0)
-
-#define FORM_IMM (0 << FORM_SHIFT)
-#define FORM_REG (1 << FORM_SHIFT)
-#define FORM_BRANCH (2 << FORM_SHIFT)
-
-#define FORM(x) ((x) << FORM_SHIFT)
-#define OP(x)   ((x) << OP_SHIFT)
-#define RD(x)   ((x) << RD_SHIFT)
-#define ALU(x)  ((x) << ALUOP_SHIFT)
-#define RA(x)   ((x) << RA_SHIFT)
-#define RB(x)   ((x) << RB_SHIFT)
-#define IMM16(x)   (((unsigned int)(x) & 0xffff) << IMM16_SHIFT)
-#define IMM22(x)   (((unsigned int)(x) & 0x3fffff) << IMM22_SHIFT)
-
-#define BRANCH_R (1<<29)
-#define BRANCH_L (1<<28)
-#define BRANCH_C (1<<23)
-#define BRANCH_N (1<<22)
-
-enum ALU_OPS {
-	OP_ADD_NUM = 0,
-	OP_SUB_NUM,
-	OP_RSB_NUM,
-	OP_AND_NUM,
-	OP_OR_NUM,
-	OP_XOR_NUM,
-	OP_LSL_NUM,
-	OP_LSR_NUM,
-	OP_ASR_NUM,
-	OP_MOV_NUM,
-	OP_MVB_NUM,
-	OP_MVT_NUM,
-	OP_SLT_NUM,
-	OP_SLTE_NUM,
-	OP_SEQ_NUM,
-};
 
 #define ALUOP_OPTABLE \
 		case OP_ADD:  i |= ALU(OP_ADD_NUM); goto alucommon; \

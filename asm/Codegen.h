@@ -27,6 +27,8 @@
 #include <ostream>
 #include <list>
 
+#include "Cpu.h"
+
 class Sym;
 class Symtab;
 class OutputFile;
@@ -34,12 +36,6 @@ class OutputFile;
 struct Reg {
 public:
 	unsigned int num;
-
-	enum {
-		SP = 14,
-		LR = 15,
-		PC = 16
-	};
 };
 
 // internal list of labels

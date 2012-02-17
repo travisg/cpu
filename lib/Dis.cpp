@@ -1,14 +1,38 @@
+/*
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 #include <sys/types.h>
 #include <cstring>
 #include <cstdio>
 #include "Dis.h"
 #include "bits.h"
+#include "Cpu.h"
+
+using namespace Cpu32;
 
 std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 {
 	char ins_str[256];
 	memset(ins_str, 0, sizeof(ins_str));
-	
 
 #define ADDSTR(str) strncat(ins_str, str, sizeof(ins_str) - 1)
 #define ADDNUM(num) do { \
@@ -24,16 +48,14 @@ std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 #define ADDREG(num) do { ADDSTR("r"); ADDNUM(num); } while (0)
 
 	// decode the instruction
-	uint form = BITS_SHIFT(word, 31, 30);
-	uint op = BITS_SHIFT(word, 29, 28);
-	uint Rd = BITS_SHIFT(word, 27, 24);
-	uint aluop = BITS_SHIFT(word, 23, 20);
-	uint Ra = BITS_SHIFT(word, 19, 16);
-	uint Rb = BITS_SHIFT(word, 15, 12);
-	uint imm16 = BITS(word, 15, 0);
-	int imm16_signed = (BIT(imm16, 15)) ? (0xffff0000 | imm16) : imm16;
-	uint imm22 = BITS(word, 21, 0) << 2;
-	int imm22_signed = (BIT(imm22, 21)) ? (0xffc00000 | imm22) : imm22;
+	uint form = DecodeForm(word);
+	uint op = DecodeOp(word);
+	uint Rd = DecodeRd(word);
+	uint aluop = DecodeALUOp(word);
+	uint Ra = DecodeRa(word);
+	uint Rb = DecodeRb(word);
+	int imm16_signed = Decodeimm16_signed(word);
+	int imm22_signed = Decodeimm22_signed(word);
 
 	switch (form) {
 		case 0: // imm alu/load/store
@@ -136,8 +158,6 @@ loadstore_shared:
 		case 3: // undefined
 			goto undefined;
 	}
-
-
 
 	return ins_str;
 

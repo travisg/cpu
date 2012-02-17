@@ -23,6 +23,7 @@
 %{
 
 #include <Codegen.h>
+#include "Cpu.h"
 
 %}
 
@@ -42,15 +43,15 @@ HEXDIGIT		[A-Fa-f0-9]
 					return TOK_REGISTER;
 				}
 pc|PC			{
-					yylval.reg.num = Reg::PC; // program counter
+					yylval.reg.num = Cpu32::PC; // program counter
 					return TOK_REGISTER;
 				}
 lr|LR			{
-					yylval.reg.num = Reg::LR;
+					yylval.reg.num = Cpu32::LR;
 					return TOK_REGISTER;
 				}
 sp|SP			{
-					yylval.reg.num = Reg::SP;
+					yylval.reg.num = Cpu32::SP;
 					return TOK_REGISTER;
 				}
 
