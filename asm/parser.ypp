@@ -41,6 +41,7 @@ int yylex(void);
 
 %token TOK_INTEGER_LITERAL TOK_REGISTER
 %token TOK_IDENTIFIER TOK_KEYWORD
+%token TOK_WORD
 
 %union
 {
@@ -68,6 +69,7 @@ expr			:
 				| ins_2addr
 				| ins_1addr
 				| label
+				| data
 				;
 
 label			: TOK_IDENTIFIER ':'
@@ -76,6 +78,19 @@ label			: TOK_IDENTIFIER ':'
 					gCodegen->AddLabel($1);
 				}
 				;
+
+data			: TOK_WORD TOK_IDENTIFIER
+				{
+					//printf("word identifier '%s'\n", $2->GetName().c_str());
+					gCodegen->AddData($2);
+				}
+				| TOK_WORD '#' TOK_INTEGER_LITERAL
+				{
+					//printf("word literal %d\n", $3);
+					gCodegen->AddData($3);
+				}
+				;
+
 
 ins_3addr		:	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER ',' TOK_REGISTER
 				{

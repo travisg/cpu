@@ -68,6 +68,9 @@ public:
 	void EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm);
 	void EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3);
 
+	void AddData(Sym *identifier);
+	void AddData(int literal);
+
 	void SetOutput(OutputFile *f);
 
 	void FixupPass();
@@ -75,6 +78,7 @@ public:
 	enum fixupType {
 		FIXUP_IMM16,
 		FIXUP_IMM22_REL,
+		FIXUP_IMM32,
 		FIXUP_IMM32_BOT,
 		FIXUP_IMM32_TOP,
 	};

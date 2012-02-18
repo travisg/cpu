@@ -87,4 +87,5 @@ loop0:
 	li		r0, label
 
 label:
-	
+	.word	label
+	.word	#99

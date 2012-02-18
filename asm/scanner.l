@@ -78,6 +78,7 @@ sp|SP			{
 						return TOK_IDENTIFIER;
 				}
 
+.word			{ return TOK_WORD; }
 
 [ \t\r\n]		{ }
 

@@ -161,6 +161,21 @@ void Codegen::AddLabel(Sym *s)
 	labels.push_back(lab);
 }
 
+void Codegen::AddData(Sym *identifier)
+{
+	std::cout << "AddData: " << *identifier << std::endl;
+
+	AddFixup(identifier, curaddr, FIXUP_IMM32);
+	curaddr = out->Append((uint32_t)0);
+}
+
+void Codegen::AddData(int literal)
+{
+	std::cout << "AddData: " << literal << std::endl;
+
+	curaddr = out->Append((uint32_t)literal);
+}
+
 Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 {
 	Fixup *f;
@@ -618,6 +633,9 @@ void Codegen::FixupPass()
 				out->ReadAt(f->addr, &ins);
 				ins |= IMM22(imm);
 				out->WriteAt(f->addr, ins);
+				break;
+			case FIXUP_IMM32:
+				out->WriteAt(f->addr, imm);
 				break;
 			case FIXUP_IMM32_BOT:
 				out->ReadAt(f->addr, &ins);
