@@ -75,6 +75,8 @@ public:
 	enum fixupType {
 		FIXUP_IMM16,
 		FIXUP_IMM22_REL,
+		FIXUP_IMM32_BOT,
+		FIXUP_IMM32_TOP,
 	};
 
 protected:

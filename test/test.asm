@@ -74,5 +74,17 @@ loop0:
 	blz		r9, start
 	blnz	r9, start
 
-;	push	r0
-;	pop		r1
+	; immediate loads
+	li		r0, #0
+	li		r0, #1
+	li		r0, #-1
+	li		r0, #0x8000
+	li		r0, #0xffff
+	li		r0, #0x10000
+	li		r0, #0xffffffff
+
+	; labels
+	li		r0, label
+
+label:
+	

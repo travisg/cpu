@@ -62,7 +62,8 @@ enum {
 	OP_BLNZ,
 
 	OP_MVN,
-	OP_NOT
+	OP_NOT,
+	OP_LI
 };
 
 struct Label {
@@ -123,6 +124,7 @@ void Codegen::InitSymtab(Symtab *tab)
 	/* pseudo instructions */
 	symtab->AddSymbol(new Sym(Sym::KEYWORD, "mvn", OP_MVN));
 	symtab->AddSymbol(new Sym(Sym::KEYWORD, "not", OP_NOT));
+	symtab->AddSymbol(new Sym(Sym::KEYWORD, "li", OP_LI));
 }
 
 void Codegen::SetOutput(OutputFile *f)
@@ -351,6 +353,25 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
 
 			i |= IMM16(imm);
 			break;
+		case OP_LI:
+			if (inrange_signed(imm, 16)) {
+				// we can use just mov
+				i |= FORM_IMM | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0);
+				i |= IMM16(imm);
+			} else if (inrange_unsigned(imm, 16)) {
+				// we can use just mvb
+				i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+				i |= IMM16(imm);
+			} else {
+				// two instruction mvb/mvt
+				i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+				i |= IMM16(imm);
+				EmitInstruction(i);
+
+				i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(0);
+				i |= IMM16(imm >> 16);
+			}
+			break;
 		case OP_BLZ: // blz r, #imm
 			i |= BRANCH_L;
 			goto shared_b;
@@ -383,6 +404,15 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
 			i |= FORM_IMM | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0);
 
 			AddFixup(identifier, curaddr, FIXUP_IMM16);
+			break;
+		case OP_LI:
+			// two instruction mvb/mvt
+			i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+			AddFixup(identifier, curaddr, FIXUP_IMM32_BOT);
+			EmitInstruction(i);
+
+			i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(0);
+			AddFixup(identifier, curaddr, FIXUP_IMM32_TOP);
 			break;
 		case OP_BLZ: // blz r, identifier
 			i |= BRANCH_L;
@@ -587,6 +617,16 @@ void Codegen::FixupPass()
 
 				out->ReadAt(f->addr, &ins);
 				ins |= IMM22(imm);
+				out->WriteAt(f->addr, ins);
+				break;
+			case FIXUP_IMM32_BOT:
+				out->ReadAt(f->addr, &ins);
+				ins |= IMM16(imm);
+				out->WriteAt(f->addr, ins);
+				break;
+			case FIXUP_IMM32_TOP:
+				out->ReadAt(f->addr, &ins);
+				ins |= IMM16(imm >> 16);
 				out->WriteAt(f->addr, ins);
 				break;
 			default:

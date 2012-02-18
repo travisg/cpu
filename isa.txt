@@ -68,6 +68,7 @@ b<l><z,nz>	r	10  1L d<4> cn xx a<4> xxxxxxxxxxxx
 pseudo instructions:
 mvn	a, b	-	rsb a, b, #0
 not	a, b	-	xor a, b, #0
+li  a, #imm -   mvb a, #(imm & 0xffff); mvt a, #(imm >> 16)
 
 common algorithms:
 
