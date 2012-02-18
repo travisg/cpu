@@ -44,9 +44,13 @@ namespace Cpu32Info {
 	static const uint IMM16_SHIFT = 0;
 	static const uint IMM22_SHIFT = 0;
 
-	static const uint FORM_IMM = 0 << FORM_SHIFT;
-	static const uint FORM_REG = 1 << FORM_SHIFT;
-	static const uint FORM_BRANCH = 2 << FORM_SHIFT;
+	static const uint FORM_IMM_UNSHIFTED = 0;
+	static const uint FORM_REG_UNSHIFTED = 1;
+	static const uint FORM_BRANCH_UNSHIFTED = 2;
+
+	static const uint FORM_IMM = FORM_IMM_UNSHIFTED << FORM_SHIFT;
+	static const uint FORM_REG = FORM_REG_UNSHIFTED << FORM_SHIFT;
+	static const uint FORM_BRANCH = FORM_BRANCH_UNSHIFTED << FORM_SHIFT;
 
 #define FORM(x) ((x) << FORM_SHIFT)
 #define OP(x)   ((x) << OP_SHIFT)

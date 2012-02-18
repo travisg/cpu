@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	
-	Cpu16 *c = new Cpu16();
+	Cpu32 *c = new Cpu32();
 
 	c->SetMem(m);
 

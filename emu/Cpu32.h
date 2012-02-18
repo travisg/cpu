@@ -25,16 +25,16 @@
 
 #include "Cpu.h"
 
-class Cpu16 : public Cpu {
+class Cpu32 : public Cpu {
 public:
-	Cpu16();
-	virtual ~Cpu16();
+	Cpu32();
+	virtual ~Cpu32();
 
 	virtual void Reset();
 	virtual void Run();
 
 private:
-	uint32_t r[8];
+	uint32_t r[16];
 	uint32_t pc;
 };
 
