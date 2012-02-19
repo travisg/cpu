@@ -78,6 +78,20 @@ off_t OutputFile::Append(uint32_t word)
 	return pos;
 }
 
+off_t OutputFile::Append(const std::string &str)
+{
+	assert(fp);
+
+	fseeko(fp, pos, SEEK_SET);
+
+	const char *s = str.c_str();
+	fwrite(s, strlen(s) + 1, 1, fp);
+
+	pos = ftello(fp);
+
+	return pos;
+}
+
 int OutputFile::WriteAt(off_t offset, uint16_t word)
 {
 	assert(fp);

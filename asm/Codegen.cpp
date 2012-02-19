@@ -176,6 +176,15 @@ void Codegen::AddData(int literal)
 	curaddr = out->Append((uint32_t)literal);
 }
 
+void Codegen::AddData(const std::string &str)
+{
+	std::cout << "AddData: '" << str << "'" << std::endl;
+
+	curaddr = out->Align(4);
+	curaddr = out->Append(str);
+	curaddr = out->Align(4);
+}
+
 Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 {
 	Fixup *f;

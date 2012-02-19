@@ -22,8 +22,11 @@
  */
 %{
 
+#include <string>
 #include <Codegen.h>
 #include "Cpu32Info.h"
+
+int enter_string = 0;
 
 %}
 
@@ -33,7 +36,37 @@
 NUM				[0-9]
 HEXDIGIT		[A-Fa-f0-9]
 
+%x STRING
 %%
+
+\"				{
+					BEGIN(STRING); 
+					enter_string++; 
+					yylval.str = new std::string;
+				}
+
+<STRING>\\b			{ *yylval.str += std::string("\b"); }
+<STRING>\\n			{ *yylval.str += std::string("\n"); }
+<STRING>\\r			{ *yylval.str += std::string("\r"); }
+<STRING>\\t			{ *yylval.str += std::string("\t"); }
+
+<STRING>[^\\\n\"]+ 	{ 
+					*yylval.str += std::string(yytext);
+					}
+
+<STRING>\n		{
+					fprintf(stderr, "unterminated string constant\n");
+				}
+
+<STRING>\" 		{ 
+					if (enter_string) {
+						/* printf("string '%s'\n", yytext); */
+						/*handle_this_dblquotes(yytext);  */
+						BEGIN(INITIAL); /* revert back to normal */
+						enter_string--; 
+					} 
+					return TOK_STRING;
+				}
 
 ;[^\n\n]*		{ /* comment */ }
 
@@ -79,6 +112,7 @@ sp|SP			{
 				}
 
 .word			{ return TOK_WORD; }
+.asciiz			{ return TOK_ASCIIZ; }
 
 [ \t\r\n]		{ }
 

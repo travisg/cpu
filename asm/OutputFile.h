@@ -36,6 +36,7 @@ public:
 
 	off_t Append(uint16_t word);
 	off_t Append(uint32_t word);
+	off_t Append(const std::string &str);
 
 	off_t Align(unsigned int alignment);
 

@@ -41,19 +41,21 @@ int yylex(void);
 
 %token TOK_INTEGER_LITERAL TOK_REGISTER
 %token TOK_IDENTIFIER TOK_KEYWORD
-%token TOK_WORD
+%token TOK_WORD TOK_ASCIIZ
+%token TOK_STRING
 
 %union
 {
 	Sym *sym;
 	Reg reg;
 	int intval;
+	std::string *str;
 }
 
 %type <sym> TOK_IDENTIFIER TOK_KEYWORD
 %type <reg> TOK_REGISTER
 %type <intval> TOK_INTEGER_LITERAL
-
+%type <str> TOK_STRING
 
 %start sequence
 
@@ -88,6 +90,12 @@ data			: TOK_WORD TOK_IDENTIFIER
 				{
 					//printf("word literal %d\n", $3);
 					gCodegen->AddData($3);
+				}
+				| TOK_ASCIIZ TOK_STRING
+				{
+					//printf("parser string %p '%s'\n", $2, $2->c_str());
+					gCodegen->AddData(*$2);
+					delete $2;
 				}
 				;
 

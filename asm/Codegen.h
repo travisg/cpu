@@ -70,6 +70,7 @@ public:
 
 	void AddData(Sym *identifier);
 	void AddData(int literal);
+	void AddData(const std::string &str);
 
 	void SetOutput(OutputFile *f);
 

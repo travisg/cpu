@@ -89,3 +89,12 @@ loop0:
 label:
 	.word	label
 	.word	#99
+
+string:
+	.asciiz "this is a string"
+	.asciiz "a second string"
+	.asciiz "a string with numbers 234234234 and control \n asdfasdf"
+
+	.asciiz "un" ; unaligned
+	add		r4, r5, r6
+
