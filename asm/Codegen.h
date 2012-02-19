@@ -72,6 +72,8 @@ public:
 	void AddData(int literal);
 	void AddData(const std::string &str);
 
+	void Align(int align);
+
 	void SetOutput(OutputFile *f);
 
 	void FixupPass();

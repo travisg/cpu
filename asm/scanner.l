@@ -90,13 +90,13 @@ sp|SP			{
 
 [\(\)\{\}\~\=\,\[\]\+\-\*\/\&\|\^\<\>\!\#\:]    { return yytext[0]; }
 
--?{NUM}+		{
-					yylval.intval = atoi(yytext);
+#-?{NUM}+		{
+					yylval.intval = atoi(yytext + 1);
 					return TOK_INTEGER_LITERAL;
 				}
-0x{HEXDIGIT}+   {
+#0x{HEXDIGIT}+   {
 					// Hexadecimal string
-					yylval.intval = strtoul(yytext, NULL, 16);
+					yylval.intval = strtoul(yytext + 1, NULL, 16);
 					return TOK_INTEGER_LITERAL;
                 }
 
@@ -113,6 +113,7 @@ sp|SP			{
 
 .word			{ return TOK_WORD; }
 .asciiz			{ return TOK_ASCIIZ; }
+.align			{ return TOK_ALIGN; }
 
 [ \t\r\n]		{ }
 

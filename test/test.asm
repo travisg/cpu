@@ -90,6 +90,8 @@ label:
 	.word	label
 	.word	#99
 
+.align #512
+
 string:
 	.asciiz "this is a string"
 	.asciiz "a second string"

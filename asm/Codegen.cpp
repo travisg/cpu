@@ -185,6 +185,13 @@ void Codegen::AddData(const std::string &str)
 	curaddr = out->Align(4);
 }
 
+void Codegen::Align(int align)
+{
+	std::cout << "Align: " << align << std::endl;
+
+	curaddr = out->Align(align);
+}
+
 Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 {
 	Fixup *f;
@@ -663,5 +670,4 @@ void Codegen::FixupPass()
 
 	printf("done with fixup pass\n");
 }
-
 
