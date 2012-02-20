@@ -4,10 +4,13 @@ module	cpu(
 	output mem_re,
 	output mem_we,
 	output reg [29:0] memaddr,
-	inout [31:0] memdata
+	inout [31:0] memdata,
+
+	output [31:0] debugout
 );
 
 assign memdata = (mem_we && !mem_re) ? aluout : 32'bz;
+assign debugout = pc;
 
 /* next pc */
 reg [29:0] pc;
@@ -145,12 +148,12 @@ regfile #(32, 4) regs(
 reg alu_a_mux_sel;
 `define ALU_A_SEL_DC  1'bx
 `define ALU_A_SEL_REG 1'b0
-`define ALU_A_SEL_PC  1'b1
+`define ALU_A_SEL_PCPLUS1  1'b1
 
 mux2 #(32) alu_a_mux(
 	.sel(alu_a_mux_sel),
 	.in0(reg_a),
-	.in1({ 2'b0, pc }),
+	.in1({ 2'b0, pcplus1 }),
 	.out(aluain)
 	);
 
@@ -256,7 +259,7 @@ begin
 					control_branch = 1;
 					control_branch_neg = ir[29];
 					reg_a_sel = decode_rd;
-					alu_a_mux_sel = `ALU_A_SEL_PC;
+					alu_a_mux_sel = `ALU_A_SEL_PCPLUS1;
 					alu_b_mux_sel = `ALU_B_SEL_IMM24;
 
 					// branch and link
