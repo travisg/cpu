@@ -8,5 +8,6 @@ smart.log
 *.sof
 *.pof
 *.summary
+*.jdi
 db
 incremental_db
