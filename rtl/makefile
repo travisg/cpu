@@ -10,7 +10,8 @@ SRC := \
 #SRC += ../lib/library.v
 SRC += testbench.v
 
-EXTRADEPS := ram.txt makerambanks.py
+#EXTRADEPS := ram.txt makerambanks.py
+EXTRADEPS := test2.asm.hex
 
 all: testbench 
 
@@ -18,7 +19,6 @@ testbench: $(SRC)
 	$(IVL) -o testbench $(SRC)
 
 testbench.vcd: testbench $(EXTRADEPS)
-	./makerambanks.py
 	./testbench
 
 wave: testbench.vcd
