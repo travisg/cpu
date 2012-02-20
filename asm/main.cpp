@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Travis Geiselbrecht
+ * Copyright (c) 2011-2012 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -32,7 +32,7 @@
 Symtab *gSymtab;
 Codegen *gCodegen;
 
-static const char *output_filename = "test.bin";
+static std::string output_filename;
 
 extern int open_input(const char *file);
 extern int parse_source();
@@ -82,6 +82,12 @@ int main(int argc, char **argv)
 	if (open_input(argv[0]) < 0) {
 		fprintf(stderr, "error opening input file\n");
 		return 1;
+	}
+
+	if (output_filename == "") {
+		// build one out of the input file
+		output_filename = std::string(argv[0]) + ".bin";
+		printf("output file %s\n", output_filename.c_str());
 	}
 
 	OutputFile *f = new OutputFile();
