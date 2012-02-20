@@ -2,3 +2,4 @@
 testbench
 testbench.vcd
 ram.bank*
+ram.allbanks
