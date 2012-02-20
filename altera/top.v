@@ -166,9 +166,6 @@ inout	[35:0]	GPIO_1;					//	GPIO Connection 1
 
 //assign GPIO_1 = GPIO_0;
 
-wire [31:0] memdata;
-wire [29:0] memaddr;
-
 // run a 1mhz clock
 reg[6:0] div;
 
@@ -176,13 +173,12 @@ initial begin
 	div <= 0;
 end
 
-always @(posedge CLOCK_24)
+always @(posedge CLOCK_24[0])
 begin
 	div = div + 1;
 end
 
-wire slowclk = div[4];
-wire memclk = div[3];
+wire slowclk = CLOCK_24[0]; //div[4];
 
 /*
 reg slowclk;
@@ -196,6 +192,9 @@ end
 wire mem_re;
 wire mem_we;
 wire rst;
+wire [29:0] memaddr;
+wire [31:0] rmemdata;
+wire [31:0] wmemdata;
 wire [31:0] cpudebugout;
 
 cpu cpu0(
@@ -204,21 +203,25 @@ cpu cpu0(
 	.mem_re(mem_re),
 	.mem_we(mem_we),
 	.memaddr(memaddr),
-	.memdata(memdata),
+	.rmemdata(rmemdata),
+	.wmemdata(wmemdata),
 
 	.debugout(cpudebugout)
 );
 
-rom rom0(
+syncmem mem0(
+	.clk(slowclk),
 	.re(mem_re),
+	.we(mem_we),
 	.addr(memaddr),
-	.data(memdata)
+	.rdata(rmemdata),
+	.wdata(wmemdata)
 );
 
 reg[31:0] debuglatch;
-always @(posedge memclk) begin
-	if (mem_we && memaddr == 256) begin
-		debuglatch <= memdata;
+always @(posedge slowclk) begin
+	if (mem_we && memaddr == 256/4) begin
+		debuglatch <= wmemdata;
 	end
 end
 
@@ -261,12 +264,12 @@ sramcontroller sram(
 
 reg[15:0] debugreg;
 
-always @(SW[9] or SW[8] or SW[7] or memaddr or memdata)
+always @(SW[9] or SW[8] or SW[7] or memaddr or rmemdata or debuglatch)
 begin
 	if (SW[9]) begin
-		debugreg = memdata[31:16];
+		debugreg = rmemdata[31:16];
 	end else if (SW[8]) begin
-		debugreg = memdata[15:0];
+		debugreg = rmemdata[15:0];
 	end else if (SW[7]) begin
 		debugreg = memaddr[29:16];
 	end else if (SW[1]) begin
@@ -294,7 +297,7 @@ assign GPIO_1[1] = mem_re;
 assign GPIO_1[2] = mem_we;
 assign GPIO_1[7:3] = memaddr[4:0];
 
-assign GPIO_1[15:8] = memdata[7:0];
+assign GPIO_1[15:8] = wmemdata[7:0];
 //assign GPIO_1[8] = memclk;
 //assign GPIO_1[9] = read_sync;
 //assign GPIO_1[10] = write_sync;
@@ -304,19 +307,27 @@ assign GPIO_1[15:8] = memdata[7:0];
 
 endmodule
 
-module rom(
+module syncmem(
+	input clk,
 	input re,
+	input we,
 	input [29:0] addr,
-	inout [31:0] data
+	output reg [31:0] rdata,
+	input [31:0] wdata
 );
 
-reg [31:0] rom [0:256];
+reg [31:0] mem [0:4096];
 
 initial begin
-	$readmemh("../test/test2.asm.hex", rom);
+	$readmemh("../test/test2.asm.hex", mem);
 end
 
-assign data = (re) ? rom[addr[7:0]] : 32'bz;
+always @(posedge clk) begin
+	if (re)
+		rdata <= mem[addr];
+	if (we)
+		mem[addr] <= wdata;
+end
 
 endmodule
 
