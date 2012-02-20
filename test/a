@@ -1,0 +1,6 @@
+#!/bin/sh
+
+../asm/build-asm/asm -o $@.bin $@ &&
+../dis/build-dis/dis $@.bin | awk '{ print $2 }' > $@.hex &&
+cat $@.hex
+
