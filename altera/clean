@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rm -rf *.done *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof *.summary db incremental_db
