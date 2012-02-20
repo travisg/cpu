@@ -70,6 +70,8 @@ HEXDIGIT		[A-Fa-f0-9]
 
 ;[^\n\n]*		{ /* comment */ }
 
+^#[^\n\n]*		{ /* comment that starts a line with # */ }
+
 [rR]{NUM}+		{
 					yylval.reg.num = atoi(yytext + 1);
 					//printf("lex: found register %d from string '%s'\n", yylval.regindex, yytext);
