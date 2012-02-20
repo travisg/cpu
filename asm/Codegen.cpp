@@ -31,6 +31,7 @@
 #include "util.h"
 
 #include "Cpu32Info.h"
+#include "Dis.h"
 
 using namespace Cpu32Info;
 
@@ -146,7 +147,7 @@ Label *Codegen::LookupLabel(const std::string &name)
 
 void Codegen::AddLabel(Sym *s)
 {
-	std::cout << "Addlabel: " << *s << std::endl;
+//	std::cout << "Addlabel: " << *s << std::endl;
 
 	Label *lab = LookupLabel(s->GetName());
 	if (lab) {
@@ -163,7 +164,7 @@ void Codegen::AddLabel(Sym *s)
 
 void Codegen::AddData(Sym *identifier)
 {
-	std::cout << "AddData: " << *identifier << std::endl;
+//	std::cout << "AddData: " << *identifier << std::endl;
 
 	AddFixup(identifier, curaddr, FIXUP_IMM32);
 	curaddr = out->Append((uint32_t)0);
@@ -171,14 +172,14 @@ void Codegen::AddData(Sym *identifier)
 
 void Codegen::AddData(int literal)
 {
-	std::cout << "AddData: " << literal << std::endl;
+//	std::cout << "AddData: " << literal << std::endl;
 
 	curaddr = out->Append((uint32_t)literal);
 }
 
 void Codegen::AddData(const std::string &str)
 {
-	std::cout << "AddData: '" << str << "'" << std::endl;
+//	std::cout << "AddData: '" << str << "'" << std::endl;
 
 	curaddr = out->Align(4);
 	curaddr = out->Append(str);
@@ -187,7 +188,7 @@ void Codegen::AddData(const std::string &str)
 
 void Codegen::Align(int align)
 {
-	std::cout << "Align: " << align << std::endl;
+//	std::cout << "Align: " << align << std::endl;
 
 	curaddr = out->Align(align);
 }
@@ -226,7 +227,7 @@ Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
-	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << r3 << std::endl;
+//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << r3 << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -245,7 +246,7 @@ alucommon:
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, int imm)
 {
-	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", #" << imm << std::endl;
+//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -284,7 +285,7 @@ alucommon:
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Sym *identifier)
 {
-	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << *identifier << std::endl;
+//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -307,7 +308,7 @@ alucommon:
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, Reg r2)
 {
-	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << r2 << std::endl;
+//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << r2 << std::endl;
 
 	// MOV
 	// MVB
@@ -369,7 +370,7 @@ static int fixup_branch_immediate(int *imm, unsigned int bitsize)
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
 {
-	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", #" << imm << std::endl;
+//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -427,7 +428,7 @@ shared_b:
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
 {
-	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << *identifier << std::endl;
+//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -468,7 +469,7 @@ shared_b:
 
 void Codegen::Emit1Addr(Sym *ins, Reg r1)
 {
-	std::cout << "1addr: " << ins->GetName() << " " << r1 << std::endl;
+//	std::cout << "1addr: " << ins->GetName() << " " << r1 << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -488,7 +489,7 @@ void Codegen::Emit1Addr(Sym *ins, Reg r1)
 
 void Codegen::Emit1Addr(Sym *ins, int imm)
 {
-	std::cout << "1addr: " << ins->GetName() << " #" << imm << std::endl;
+//	std::cout << "1addr: " << ins->GetName() << " #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -509,7 +510,7 @@ void Codegen::Emit1Addr(Sym *ins, int imm)
 
 void Codegen::Emit1Addr(Sym *ins, Sym *identifier)
 {
-	std::cout << "1addr: " << ins->GetName() << " " << *identifier << std::endl;
+//	std::cout << "1addr: " << ins->GetName() << " " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -547,7 +548,7 @@ static int fixup_loadstore_immediate(int *imm, unsigned int bitsize)
 
 void Codegen::EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm)
 {
-	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", #" << imm << "]" << std::endl;
+//	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", #" << imm << "]" << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -575,7 +576,7 @@ ldrstr_common:
 
 void Codegen::EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
-	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", " << r3 << "]" << std::endl;
+//	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", " << r3 << "]" << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -605,18 +606,18 @@ void Codegen::EmitInstruction(uint32_t ins)
 
 void Codegen::FixupPass()
 {
-	printf("fixup pass...\n");
+//	printf("fixup pass...\n");
 
 	for (fixupIterator i =  fixups.begin(); i != fixups.end(); i++) {
 		Fixup *f = *i;
 
-		printf("\tfixup %p: type %d, addr 0x%llx, identifier '%s'\n", f, f->type, (unsigned long long)f->addr, f->identifier->GetName().c_str());
+//		printf("\tfixup %p: type %d, addr 0x%llx, identifier '%s'\n", f, f->type, (unsigned long long)f->addr, f->identifier->GetName().c_str());
 		Label *lab = LookupLabel(f->identifier->GetName());
 		if (!lab) {
 			fprintf(stderr, "error looking up label %s\n", f->identifier->GetName().c_str());
 			continue;
 		}
-		printf("\t\tlabel at address 0x%llx\n", (unsigned long long)lab->addr);
+//		printf("\t\tlabel at address 0x%llx\n", (unsigned long long)lab->addr);
 
 		uint32_t ins;
 		uint32_t imm;
@@ -668,6 +669,6 @@ void Codegen::FixupPass()
 		}
 	}
 
-	printf("done with fixup pass\n");
+//	printf("done with fixup pass\n");
 }
 
