@@ -1,0 +1,7 @@
+#!/bin/sh
+
+tagit
+make &&
+make -C ../asm &&
+../asm/build-asm/asm tests/hello.asm &&
+./build-emu/emu $@ tests/hello.asm.bin
