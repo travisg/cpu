@@ -157,7 +157,7 @@ static int preprocess(const std::string &file)
 		close(pipes[0]);
 		close(pipes[1]);
 
-		execlp("cpp", 0);
+		execlp("cpp", "cpp", NULL);
 
 		fprintf(stderr, "error execing preprocessor\n");
 		exit(1);

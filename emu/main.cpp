@@ -22,6 +22,7 @@
  */
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <getopt.h>
 
 #include "Mem.h"

@@ -56,7 +56,7 @@ void Cpu32::Reset()
 	pc = 0;
 }
 
-void Cpu32::SetCycleLimit(int64_t limit)
+void Cpu32::SetCycleLimit(uint64_t limit)
 {
 	cycleLimit = limit;
 }
