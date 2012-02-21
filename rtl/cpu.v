@@ -37,7 +37,6 @@ assign debugout = pc;
 
 /* next pc */
 reg [29:0] pc;
-wire [29:0] pcplus1 = pc + 30'd1;
 reg [29:0] nextpc;
 
 reg [2:0] control_branch;
@@ -46,12 +45,12 @@ reg [2:0] control_branch;
 `define CONTROL_BRANCH_COND_Z 3'b010
 `define CONTROL_BRANCH_COND_NZ 3'b011
 
-always @(control_branch or reg_c or aluout or pcplus1)
+always @(control_branch or reg_c or aluout or pc)
 begin
 	casex (control_branch)
-		`CONTROL_BRANCH_NOTAKE: nextpc = pcplus1;
-		`CONTROL_BRANCH_COND_Z: nextpc = (reg_c == 32'd0) ? aluout[29:0] : pcplus1;
-		`CONTROL_BRANCH_COND_NZ: nextpc = (reg_c != 32'd0) ? aluout[29:0] : pcplus1;
+		`CONTROL_BRANCH_NOTAKE: nextpc = pc;
+		`CONTROL_BRANCH_COND_Z: nextpc = (reg_c == 32'd0) ? aluout[29:0] : pc;
+		`CONTROL_BRANCH_COND_NZ: nextpc = (reg_c != 32'd0) ? aluout[29:0] : pc;
 		`CONTROL_BRANCH_UNCOND: nextpc = aluout[29:0]; 
 	endcase
 end
@@ -87,10 +86,10 @@ end
 assign mem_we = (nextstate == `STATE_STORE);
 assign mem_re = ((nextstate == `STATE_FETCH) || (nextstate == `STATE_LOAD));
 
-always @(nextstate or nextpc or aluout)
+always @(nextstate or pc or nextpc or aluout)
 begin
 	case (nextstate)
-		`STATE_RST: memaddr = nextpc;
+		`STATE_RST: memaddr = pc;
 		`STATE_FETCH: memaddr = nextpc;
 		`STATE_DECODE: memaddr = 30'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
 		`STATE_LOAD: memaddr = aluout[31:2];
@@ -102,7 +101,7 @@ end
 always @(posedge clk)
 begin
 	if (rst) begin
-		pc <= 30'b111111111111111111111111111111;
+		pc <= 0; // 30'b111111111111111111111111111111;
 		state <= `STATE_RST;
 	end else begin
 		state <= nextstate;
@@ -111,6 +110,7 @@ begin
 				pc <= nextpc;
 			end
 			`STATE_DECODE: begin
+				pc <= aluout[29:0];
 				ir <= rmemdata;
 			end
 		endcase
@@ -188,12 +188,12 @@ regfile #(32, 4) regs(
 reg alu_a_mux_sel;
 `define ALU_A_SEL_DC  1'bx
 `define ALU_A_SEL_REG 1'b0
-`define ALU_A_SEL_PCPLUS1  1'b1
+`define ALU_A_SEL_PC  1'b1
 
 mux2 #(32) alu_a_mux(
 	.sel(alu_a_mux_sel),
 	.in0(reg_a),
-	.in1({ 2'b0, pcplus1 }),
+	.in1({ 2'b0, pc }),
 	.out(aluain)
 	);
 
@@ -203,14 +203,14 @@ reg [1:0] alu_b_mux_sel;
 `define ALU_B_SEL_REG   2'b00
 `define ALU_B_SEL_IMM16 2'b01
 `define ALU_B_SEL_IMM22 2'b10
-`define ALU_B_SEL_ZERO  2'b11
+`define ALU_B_SEL_ONE   2'b11
 
 mux4 #(32) alu_b_mux(
 	.sel(alu_b_mux_sel),
 	.in0(reg_b),
 	.in1(decode_imm16_signed),
 	.in2(decode_imm22_signed),
-	.in3(0),
+	.in3(1),
 	.out(alubin)
 	);
 
@@ -219,14 +219,14 @@ reg [1:0] reg_w_mux_sel;
 `define REG_W_SEL_DC  2'bxx
 `define REG_W_SEL_ALU 2'b00
 `define REG_W_SEL_MEM 2'b01
-`define REG_W_SEL_PCPLUS1  2'b10
+`define REG_W_SEL_PC  2'b10
 `define REG_W_SEL_ZERO 2'b11
 
 mux4 #(32) reg_w_mux(
 	.sel(reg_w_mux_sel),
 	.in0(aluout),
 	.in1(rmemdata),
-	.in2({ pcplus1, 2'b0 }),
+	.in2({ pc, 2'b0 }),
 	.in3(0),
 	.out(reg_wdata)
 	);
@@ -258,6 +258,12 @@ begin
 	reg_w_mux_sel = `REG_W_SEL_DC;
 
 	case (state)
+		`STATE_FETCH: begin
+			/* use the alu to calculate the next pc */
+			aluop = 4'b0000; // add
+			alu_a_mux_sel = `ALU_A_SEL_PC;
+			alu_b_mux_sel = `ALU_B_SEL_ONE;
+		end
 		`STATE_DECODE: begin
 			casex (decode_form)
 				2'b0?: begin /* form 0 and form 1 are very similar */
@@ -296,13 +302,13 @@ begin
 					$display("form 2 - branch");
 					aluop = 0; // add
 					control_branch = { 1'b0, ir[23], ir[22] };
-					alu_a_mux_sel = `ALU_A_SEL_PCPLUS1;
+					alu_a_mux_sel = `ALU_A_SEL_PC;
 					alu_b_mux_sel = `ALU_B_SEL_IMM22;
 
 					// branch and link
 					if (ir[28]) begin
 						reg_w_sel = 15; // LR
-						reg_w_mux_sel = `REG_W_SEL_PCPLUS1;
+						reg_w_mux_sel = `REG_W_SEL_PC;
 						control_reg_wb = 1;
 					end
 				end
@@ -315,8 +321,6 @@ begin
 			control_reg_wb = 1;
 			reg_w_sel = decode_rd;
 			reg_w_mux_sel = `REG_W_SEL_MEM;
-		end
-		`STATE_STORE: begin
 		end
 		default: begin
 		end
