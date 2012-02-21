@@ -124,33 +124,38 @@ alucommon:
 
 				break;
 			}
-			case FORM_BRANCH_UNSHIFTED:
+			case FORM_BRANCH_UNSHIFTED: {
 				word target;
 
-				if (BIT(ins, BRANCH_R)) {
+				if (BIT(ins, BRANCH_R_BITPOS)) {
 					target = r[DecodeRa(ins)];
 				} else {
 					target = pc + Decodeimm22_signed(ins);
 				}
+//				TRACEF("branch, target 0x%x\n", target);
 
 				// if it's a conditional branch, test and drop out if it fails
-				if (BIT(ins, BRANCH_C)) {
+				bool take = true;
+				if (BIT(ins, BRANCH_C_BITPOS)) {
 					word test = r[DecodeRd(ins)];
-					if (BIT(ins, BRANCH_N)) {
-						if (test) goto branch_done;
+					if (BIT(ins, BRANCH_N_BITPOS)) {
+						take = test != 0;
 					} else {
-						if (!test) goto branch_done;
+						take = test == 0;
 					}
 				}
 
-				if (BIT(ins, BRANCH_L)) {
-					r[LR] = pc + 1;
+				if (take) {
+//					TRACEF("taking branch\n");
+					if (BIT(ins, BRANCH_L_BITPOS)) {
+						r[LR] = pc;
+					}
+
+					pc = target;
 				}
 
-				pc = target;
-branch_done:
-
 				break;
+			}
 			default:
 				goto undefined;
 		}

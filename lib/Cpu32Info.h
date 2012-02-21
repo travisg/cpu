@@ -61,10 +61,15 @@ namespace Cpu32Info {
 #define IMM16(x)   (((unsigned int)(x) & 0xffff) << IMM16_SHIFT)
 #define IMM22(x)   (((unsigned int)(x) & 0x3fffff) << IMM22_SHIFT)
 
-	static const uint BRANCH_R = 1<<29;
-	static const uint BRANCH_L = 1<<28;
-	static const uint BRANCH_C = 1<<23;
-	static const uint BRANCH_N = 1<<22;
+	static const uint BRANCH_R_BITPOS = 29;
+	static const uint BRANCH_L_BITPOS = 28;
+	static const uint BRANCH_C_BITPOS = 23;
+	static const uint BRANCH_N_BITPOS = 22;
+
+	static const uint BRANCH_R = 1<<BRANCH_R_BITPOS;
+	static const uint BRANCH_L = 1<<BRANCH_L_BITPOS;
+	static const uint BRANCH_C = 1<<BRANCH_C_BITPOS;
+	static const uint BRANCH_N = 1<<BRANCH_N_BITPOS;
 
 	static inline uint DecodeForm(uint32_t word) { return BITS_SHIFT(word, 31, FORM_SHIFT); }
 	static inline uint DecodeOp(uint32_t word) { return BITS_SHIFT(word, 29, OP_SHIFT); }

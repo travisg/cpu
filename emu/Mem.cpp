@@ -77,6 +77,12 @@ void Mem::Write(uint32_t addr, uint32_t val)
 		return;
 	}
 
+	if (addr == 0x80000000) {
+		printf("%c", val & 0xff);
+		fflush(stdout);
+		return;
+	}
+
 	if (addr > size - 4)
 		return;
 
