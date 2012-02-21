@@ -33,6 +33,8 @@
 #include "Cpu32Info.h"
 #include "Dis.h"
 
+#define TRACE 0
+
 using namespace Cpu32Info;
 
 extern void yyerror(const char *str);
@@ -147,7 +149,7 @@ Label *Codegen::LookupLabel(const std::string &name)
 
 void Codegen::AddLabel(Sym *s)
 {
-//	std::cout << "Addlabel: " << *s << std::endl;
+	if (TRACE) std::cout << "Addlabel: " << *s << std::endl;
 
 	Label *lab = LookupLabel(s->GetName());
 	if (lab) {
@@ -164,7 +166,7 @@ void Codegen::AddLabel(Sym *s)
 
 void Codegen::AddData(Sym *identifier)
 {
-//	std::cout << "AddData: " << *identifier << std::endl;
+	if (TRACE) std::cout << "AddData: " << *identifier << std::endl;
 
 	AddFixup(identifier, curaddr, FIXUP_IMM32);
 	curaddr = out->Append((uint32_t)0);
@@ -172,14 +174,14 @@ void Codegen::AddData(Sym *identifier)
 
 void Codegen::AddData(int literal)
 {
-//	std::cout << "AddData: " << literal << std::endl;
+	if (TRACE) std::cout << "AddData: " << literal << std::endl;
 
 	curaddr = out->Append((uint32_t)literal);
 }
 
 void Codegen::AddData(const std::string &str)
 {
-//	std::cout << "AddData: '" << str << "'" << std::endl;
+	if (TRACE) std::cout << "AddData: '" << str << "'" << std::endl;
 
 	curaddr = out->Align(4);
 	curaddr = out->Append(str);
@@ -188,7 +190,7 @@ void Codegen::AddData(const std::string &str)
 
 void Codegen::Align(int align)
 {
-//	std::cout << "Align: " << align << std::endl;
+	if (TRACE) std::cout << "Align: " << align << std::endl;
 
 	curaddr = out->Align(align);
 }
@@ -227,7 +229,7 @@ Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
-//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << r3 << std::endl;
+	if (TRACE) std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << r3 << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -246,7 +248,7 @@ alucommon:
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, int imm)
 {
-//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", #" << imm << std::endl;
+	if (TRACE) std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -285,7 +287,7 @@ alucommon:
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Sym *identifier)
 {
-//	std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << *identifier << std::endl;
+	if (TRACE) std::cout << "3addr: " << ins->GetName() << " " << r1 << ", " << r2 << ", " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -308,7 +310,7 @@ alucommon:
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, Reg r2)
 {
-//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << r2 << std::endl;
+	if (TRACE) std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << r2 << std::endl;
 
 	// MOV
 	// MVB
@@ -370,7 +372,7 @@ static int fixup_branch_immediate(int *imm, unsigned int bitsize)
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
 {
-//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", #" << imm << std::endl;
+	if (TRACE) std::cout << "2addr: " << ins->GetName() << " " << r1 << ", #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -428,7 +430,7 @@ shared_b:
 
 void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
 {
-//	std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << *identifier << std::endl;
+	if (TRACE) std::cout << "2addr: " << ins->GetName() << " " << r1 << ", " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -469,7 +471,7 @@ shared_b:
 
 void Codegen::Emit1Addr(Sym *ins, Reg r1)
 {
-//	std::cout << "1addr: " << ins->GetName() << " " << r1 << std::endl;
+	if (TRACE) std::cout << "1addr: " << ins->GetName() << " " << r1 << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -489,7 +491,7 @@ void Codegen::Emit1Addr(Sym *ins, Reg r1)
 
 void Codegen::Emit1Addr(Sym *ins, int imm)
 {
-//	std::cout << "1addr: " << ins->GetName() << " #" << imm << std::endl;
+	if (TRACE) std::cout << "1addr: " << ins->GetName() << " #" << imm << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -510,7 +512,7 @@ void Codegen::Emit1Addr(Sym *ins, int imm)
 
 void Codegen::Emit1Addr(Sym *ins, Sym *identifier)
 {
-//	std::cout << "1addr: " << ins->GetName() << " " << *identifier << std::endl;
+	if (TRACE) std::cout << "1addr: " << ins->GetName() << " " << *identifier << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -548,7 +550,7 @@ static int fixup_loadstore_immediate(int *imm, unsigned int bitsize)
 
 void Codegen::EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm)
 {
-//	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", #" << imm << "]" << std::endl;
+	if (TRACE) std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", #" << imm << "]" << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
@@ -576,7 +578,7 @@ ldrstr_common:
 
 void Codegen::EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
-//	std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", " << r3 << "]" << std::endl;
+	if (TRACE) std::cout << "loadstore: " << *ins << " " << r1 << ",[" << r2 << ", " << r3 << "]" << std::endl;
 
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
