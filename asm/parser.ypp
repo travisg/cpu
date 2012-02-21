@@ -41,7 +41,7 @@ int yylex(void);
 
 %token TOK_INTEGER_LITERAL TOK_REGISTER
 %token TOK_IDENTIFIER TOK_KEYWORD
-%token TOK_WORD TOK_ASCIIZ TOK_ALIGN
+%token TOK_WORD TOK_ASCIIZ TOK_ALIGN TOK_SKIP
 %token TOK_STRING
 
 %union
@@ -73,6 +73,7 @@ expr			:
 				| label
 				| data
 				| align
+				| skip
 				;
 
 label			: TOK_IDENTIFIER ':'
@@ -106,6 +107,11 @@ align			: TOK_ALIGN TOK_INTEGER_LITERAL
 				}
 				;
 
+skip			: TOK_SKIP TOK_INTEGER_LITERAL
+				{
+					gCodegen->Skip($2);
+				}
+				;
 
 ins_3addr		:	TOK_KEYWORD TOK_REGISTER ',' TOK_REGISTER ',' TOK_REGISTER
 				{
@@ -189,11 +195,11 @@ int yywrap(void)
 	return 1;
 }
 
-int open_input(const char *file)
+int open_input(int fd, const char *file)
 {
 	FILE *fp;
 
-	fp = fopen(file, "r");
+	fp = fdopen(fd, "r");
 	if (!fp)
 		return -1;
 

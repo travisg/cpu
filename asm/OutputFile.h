@@ -39,6 +39,7 @@ public:
 	off_t Append(const std::string &str);
 
 	off_t Align(unsigned int alignment);
+	off_t Skip(unsigned int skip);
 
 	int WriteAt(off_t offset, uint16_t word);
 	int ReadAt(off_t offset, uint16_t *word);

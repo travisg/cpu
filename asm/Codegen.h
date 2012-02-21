@@ -73,6 +73,7 @@ public:
 	void AddData(const std::string &str);
 
 	void Align(int align);
+	void Skip(int skip);
 
 	void SetOutput(OutputFile *f);
 

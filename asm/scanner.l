@@ -116,6 +116,7 @@ sp|SP			{
 .word			{ return TOK_WORD; }
 .asciiz			{ return TOK_ASCIIZ; }
 .align			{ return TOK_ALIGN; }
+.skip			{ return TOK_SKIP; }
 
 [ \t\r\n]		{ }
 

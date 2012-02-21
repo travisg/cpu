@@ -158,3 +158,10 @@ off_t OutputFile::Align(unsigned int alignment)
 	return pos;
 }
 
+off_t OutputFile::Skip(unsigned int skip)
+{
+	pos += skip;
+
+	return pos;
+}
+

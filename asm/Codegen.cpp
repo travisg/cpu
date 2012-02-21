@@ -192,7 +192,16 @@ void Codegen::Align(int align)
 {
 	if (TRACE) std::cout << "Align: " << align << std::endl;
 
-	curaddr = out->Align(align);
+	if (align > 0)
+		curaddr = out->Align(align);
+}
+
+void Codegen::Skip(int skip)
+{
+	if (TRACE) std::cout << "Skip: " << skip << std::endl;
+
+	if (skip > 0)
+		curaddr = out->Skip(skip);
 }
 
 Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
@@ -402,7 +411,7 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
 				i |= IMM16(imm);
 				EmitInstruction(i);
 
-				i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(0);
+				i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
 				i |= IMM16(imm >> 16);
 			}
 			break;
@@ -445,7 +454,7 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
 			AddFixup(identifier, curaddr, FIXUP_IMM32_BOT);
 			EmitInstruction(i);
 
-			i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(0);
+			i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
 			AddFixup(identifier, curaddr, FIXUP_IMM32_TOP);
 			break;
 		case OP_BLZ: // blz r, identifier
