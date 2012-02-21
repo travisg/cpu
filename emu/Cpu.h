@@ -22,6 +22,7 @@
  */
 #pragma once
 
+#include <stdint.h>
 #include "Mem.h"
 
 class Cpu {
@@ -31,6 +32,7 @@ public:
 
 	void SetMem(Mem *m) { mem = m; }
 
+	virtual void SetCycleLimit(int64_t limit) = 0;
 	virtual void Reset() = 0;
 	virtual void Run() = 0;
 

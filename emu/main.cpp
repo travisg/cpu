@@ -22,11 +22,14 @@
  */
 #include <cstdio>
 #include <cstring>
+#include <getopt.h>
 
 #include "Mem.h"
 #include "Cpu32.h"
 
 #include "Cpu.h"
+
+static int64_t cycle_limit = 0;
 
 static void usage(int argc, char **argv)
 {
@@ -35,14 +38,41 @@ static void usage(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	if (argc < 2) {
+	// read in any overriding configuration from the command line
+	for(;;) {
+		int c;
+		int option_index = 0;
+
+		static struct option long_options[] = {
+			{"cycles", 1, 0, 'c'},
+			{0, 0, 0, 0},
+		};
+
+		c = getopt_long(argc, argv, "c:", long_options, &option_index);
+		if(c == -1)
+			break;
+
+		switch(c) {
+			case 'c':
+				cycle_limit = atoll(optarg);
+				break;
+			default:
+				usage(argc, argv);
+				break;
+		}
+	}
+
+	if (argc - optind < 1) {
 		usage(argc, argv);
 		return 1;
 	}
 
+	argc -= optind;
+	argv += optind;
+
 	Mem *m = new Mem(4*1024*1024);
 
-	if (m->LoadFile(argv[1], 0) < 0) {
+	if (m->LoadFile(argv[0], 0) < 0) {
 		fprintf(stderr, "error loading file\n");
 		return 1;
 	}
@@ -50,6 +80,8 @@ int main(int argc, char **argv)
 	Cpu32 *c = new Cpu32();
 
 	c->SetMem(m);
+	if (cycle_limit > 0)
+		c->SetCycleLimit(cycle_limit);
 
 	c->Reset();
 	c->Run();

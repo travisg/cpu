@@ -41,6 +41,7 @@ typedef uint8_t byte;
 using namespace Cpu32Info;
 
 Cpu32::Cpu32()
+:	cycleLimit(0)
 {
 }
 
@@ -52,6 +53,11 @@ void Cpu32::Reset()
 {
 	memset(r, 0, sizeof(r));
 	pc = 0;
+}
+
+void Cpu32::SetCycleLimit(int64_t limit)
+{
+	cycleLimit = limit;
 }
 
 void Cpu32::Run()
@@ -150,7 +156,7 @@ branch_done:
 //		if ((cycle % 1000000) == 0)
 //			printf("%lld cycles\n", cycle);
 
-		if (cycle == CYCLE_TERM)
+		if (cycleLimit > 0 && cycle == cycleLimit)
 			break;
 
 		continue;

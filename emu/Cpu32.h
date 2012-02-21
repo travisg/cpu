@@ -30,12 +30,15 @@ public:
 	Cpu32();
 	virtual ~Cpu32();
 
+	virtual void SetCycleLimit(int64_t limit);
 	virtual void Reset();
 	virtual void Run();
 
 private:
 	uint32_t r[16];
 	uint32_t pc;
+
+	int64_t cycleLimit;
 };
 
 

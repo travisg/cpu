@@ -13,7 +13,7 @@ echo $?
 ./dis/build-dis/dis test/test.bin
 echo $?
 
-./emu/build-emu/emu test/test.bin
+./emu/build-emu/emu -c 10 test/test.bin
 echo $?
 
 #valgrind --leak-check=full -- ./asm/build-asm/asm -o test/test.bin test/test.asm
