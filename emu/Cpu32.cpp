@@ -41,7 +41,8 @@ typedef uint8_t byte;
 using namespace Cpu32Info;
 
 Cpu32::Cpu32()
-:	cycleLimit(0)
+:	cycleLimit(0),
+	verbose(false)
 {
 }
 
@@ -60,6 +61,11 @@ void Cpu32::SetCycleLimit(int64_t limit)
 	cycleLimit = limit;
 }
 
+void Cpu32::SetVerbose(bool _verbose)
+{
+	verbose = _verbose;
+}
+
 void Cpu32::Run()
 {
 	uint64_t cycle = 0;
@@ -69,7 +75,8 @@ void Cpu32::Run()
 	for (;; cycle++) {
 		word ins = mem->Read(pc & ~0x3);
 		
-		TRACEF("PC 0x%08x ins 0x%08x %s\n", pc, ins, Dis::Dissassemble(ins).c_str());
+		if (verbose)
+			printf("PC 0x%08x ins 0x%08x %s\n", pc, ins, Dis::Dissassemble(ins).c_str());
 
 		pc += 4;
 
@@ -148,10 +155,12 @@ branch_done:
 				goto undefined;
 		}
 
-		TRACEF("\tR0 0x%08x R1 0x%08x R2  0x%08x R3  0x%08x R4  0x%08x R5  0x%08x R6  0x%08x R7  0x%08x\n", 
-			r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]);
-		TRACEF("\tR8 0x%08x R9 0x%08x R10 0x%08x R11 0x%08x R12 0x%08x R13 0x%08x R14 0x%08x R15 0x%08x\n", 
-			r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15]);
+		if (verbose) {
+			TRACEF("\tR0 0x%08x R1 0x%08x R2  0x%08x R3  0x%08x R4  0x%08x R5  0x%08x R6  0x%08x R7  0x%08x\n", 
+				r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]);
+			TRACEF("\tR8 0x%08x R9 0x%08x R10 0x%08x R11 0x%08x R12 0x%08x R13 0x%08x R14 0x%08x R15 0x%08x\n", 
+				r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15]);
+		}
 
 //		if ((cycle % 1000000) == 0)
 //			printf("%lld cycles\n", cycle);

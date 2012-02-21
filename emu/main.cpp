@@ -30,10 +30,11 @@
 #include "Cpu.h"
 
 static int64_t cycle_limit = 0;
+static bool verbose = false;
 
 static void usage(int argc, char **argv)
 {
-	fprintf(stderr, "usage: %s <binary>\n", argv[0]);
+	fprintf(stderr, "usage: %s [-c cycle limit] -v <binary>\n", argv[0]);
 }
 
 int main(int argc, char **argv)
@@ -45,16 +46,20 @@ int main(int argc, char **argv)
 
 		static struct option long_options[] = {
 			{"cycles", 1, 0, 'c'},
+			{"verbose", 0, 0, 'v'},
 			{0, 0, 0, 0},
 		};
 
-		c = getopt_long(argc, argv, "c:", long_options, &option_index);
+		c = getopt_long(argc, argv, "c:v", long_options, &option_index);
 		if(c == -1)
 			break;
 
 		switch(c) {
 			case 'c':
 				cycle_limit = atoll(optarg);
+				break;
+			case 'v':
+				verbose = true;
 				break;
 			default:
 				usage(argc, argv);
@@ -82,6 +87,7 @@ int main(int argc, char **argv)
 	c->SetMem(m);
 	if (cycle_limit > 0)
 		c->SetCycleLimit(cycle_limit);
+	c->SetVerbose(verbose);
 
 	c->Reset();
 	c->Run();
