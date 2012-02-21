@@ -9,5 +9,6 @@ smart.log
 *.pof
 *.summary
 *.jdi
+*.smsg
 db
 incremental_db
