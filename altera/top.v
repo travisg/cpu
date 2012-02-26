@@ -211,25 +211,34 @@ end
 */
 
 /* instantiate the cpu */
-wire mem_re;
-wire mem_we;
-wire rst;
+wire cpu_re;
+wire cpu_we;
+reg rst;
 wire [29:0] memaddr;
 wire [31:0] rmemdata;
 wire [31:0] wmemdata;
 wire [31:0] cpudebugout;
 
+//assign rst = KEY[0];
+
+initial
+	rst <= 0;
+
 cpu cpu0(
 	.clk(slowclk),
 	.rst(rst),
-	.mem_re(mem_re),
-	.mem_we(mem_we),
+	.mem_re(cpu_re),
+	.mem_we(cpu_we),
 	.memaddr(memaddr),
 	.rmemdata(rmemdata),
 	.wmemdata(wmemdata),
 
 	.debugout(cpudebugout)
 );
+
+/* main memory */
+wire mem_re = cpu_re && (memaddr[29] == 0);
+wire mem_we = cpu_we && (memaddr[29] == 0);
 
 syncmem mem0(
 	.clk(slowclk),
@@ -240,12 +249,37 @@ syncmem mem0(
 	.wdata(wmemdata)
 );
 
+/* uart */
+wire uart_re = cpu_re && (memaddr[29:14] == 16'b1000000000000000);
+wire uart_we = cpu_we && (memaddr[29:14] == 16'b1000000000000000);
+
+uart uart0(
+	.clk(slowclk),
+	.rst(rst),
+
+	.hwtx(UART_TXD),
+	.hwrx(UART_RXD),
+
+	.addr(memaddr[0]),
+	.re(uart_re),
+	.we(uart_we),
+	.wdata(wmemdata),
+	.rdata(rmemdata),
+
+//	.rxchar(0),
+//	.rxvalid(),
+	);
+
+/* debug register */
+wire debuglatch_we = cpu_we && (memaddr[29:14] == 16'b1000000000000001);
+
 reg[31:0] debuglatch;
 always @(posedge slowclk) begin
-	if (mem_we && memaddr == 256/4) begin
+	if (debuglatch_we) begin
 		debuglatch <= wmemdata;
 	end
 end
+
 
 //`define WITH_SRAM
 `ifdef WITH_SRAM
@@ -314,18 +348,21 @@ assign LEDG[1] = slowclk;
 assign LEDG[2] = mem_re;
 assign LEDG[3] = mem_we;
 
-assign GPIO_1[0] = slowclk;
-assign GPIO_1[1] = mem_re;
-assign GPIO_1[2] = mem_we;
-assign GPIO_1[7:3] = memaddr[4:0];
+//assign GPIO_1[0] = slowclk;
+//assign GPIO_1[1] = mem_re;
+//assign GPIO_1[2] = mem_we;
+//assign GPIO_1[7:3] = memaddr[4:0];
 
-assign GPIO_1[15:8] = wmemdata[7:0];
+//assign GPIO_1[15:8] = wmemdata[7:0];
 //assign GPIO_1[8] = memclk;
 //assign GPIO_1[9] = read_sync;
 //assign GPIO_1[10] = write_sync;
 //assign GPIO_1[11] = SRAM_CE_N;
 //assign GPIO_1[12] = SRAM_OE_N;
 //assign GPIO_1[15:13] = SRAM_ADDR[2:0];
+
+assign GPIO_1[0] = UART_TXD;
+assign GPIO_1[1] = UART_RXD;
 
 endmodule
 
@@ -347,6 +384,8 @@ end
 always @(posedge clk) begin
 	if (re)
 		rdata <= mem[addr];
+	else
+		rdata <= 32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
 	if (we)
 		mem[addr] <= wdata;
 end
