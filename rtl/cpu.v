@@ -39,11 +39,14 @@ assign debugout = pc;
 reg [29:0] pc;
 reg [29:0] nextpc;
 
-reg [2:0] control_branch;
-`define CONTROL_BRANCH_NOTAKE 3'b1xx
-`define CONTROL_BRANCH_UNCOND 3'b00?
-`define CONTROL_BRANCH_COND_Z 3'b010
-`define CONTROL_BRANCH_COND_NZ 3'b011
+reg [3:0] control_branch;
+`define CONTROL_BRANCH_NOTAKE     4'b1xxx
+`define CONTROL_BRANCH_UNCOND     4'b000?
+`define CONTROL_BRANCH_COND_Z     4'b0010
+`define CONTROL_BRANCH_COND_NZ    4'b0011
+`define CONTROL_BRANCH_RA_UNCOND  4'b010?
+`define CONTROL_BRANCH_RA_COND_Z  4'b0110
+`define CONTROL_BRANCH_RA_COND_NZ 4'b0111
 
 always @(control_branch or reg_c or aluout or pc)
 begin
@@ -52,6 +55,9 @@ begin
 		`CONTROL_BRANCH_COND_Z: nextpc = (reg_c == 32'd0) ? aluout[29:0] : pc;
 		`CONTROL_BRANCH_COND_NZ: nextpc = (reg_c != 32'd0) ? aluout[29:0] : pc;
 		`CONTROL_BRANCH_UNCOND: nextpc = aluout[29:0]; 
+		`CONTROL_BRANCH_RA_COND_Z: nextpc = (reg_c == 32'd0) ? (reg_a >> 2) : pc;
+		`CONTROL_BRANCH_RA_COND_NZ: nextpc = (reg_c != 32'd0) ? (reg_a >> 2) : pc;
+		`CONTROL_BRANCH_RA_UNCOND: nextpc = reg_a >> 2;
 	endcase
 end
 
@@ -210,7 +216,7 @@ mux4 #(32) alu_b_mux(
 	.in0(reg_b),
 	.in1(decode_imm16_signed),
 	.in2(decode_imm22_signed),
-	.in3(1),
+	.in3(32'd1),
 	.out(alubin)
 	);
 
@@ -300,10 +306,17 @@ begin
 				end
 				2'b10: begin
 					$display("form 2 - branch");
-					aluop = 0; // add
-					control_branch = { 1'b0, ir[23], ir[22] };
-					alu_a_mux_sel = `ALU_A_SEL_PC;
-					alu_b_mux_sel = `ALU_B_SEL_IMM22;
+					if (ir[29] == 0) begin
+						// pc relative branch
+						aluop = 0; // add
+						control_branch = { 1'b0, 1'b0, ir[23], ir[22] };
+						alu_a_mux_sel = `ALU_A_SEL_PC;
+						alu_b_mux_sel = `ALU_B_SEL_IMM22;
+					end else begin
+						// branch to reg
+						control_branch = { 1'b0, 1'b1, ir[23], ir[22] };
+						reg_a_sel = decode_ra;
+					end
 
 					// branch and link
 					if (ir[28]) begin
