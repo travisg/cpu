@@ -48,7 +48,7 @@ reg [3:0] control_branch;
 `define CONTROL_BRANCH_RA_COND_Z  4'b0110
 `define CONTROL_BRANCH_RA_COND_NZ 4'b0111
 
-always @(control_branch or reg_c or aluout or pc)
+always @(control_branch or reg_c or aluout or reg_a or pc)
 begin
 	casex (control_branch)
 		`CONTROL_BRANCH_NOTAKE: nextpc = pc;
@@ -57,7 +57,7 @@ begin
 		`CONTROL_BRANCH_UNCOND: nextpc = aluout[29:0]; 
 		`CONTROL_BRANCH_RA_COND_Z: nextpc = (reg_c == 32'd0) ? (reg_a >> 2) : pc;
 		`CONTROL_BRANCH_RA_COND_NZ: nextpc = (reg_c != 32'd0) ? (reg_a >> 2) : pc;
-		`CONTROL_BRANCH_RA_UNCOND: nextpc = reg_a >> 2;
+		`CONTROL_BRANCH_RA_UNCOND: nextpc = (reg_a >> 2);
 	endcase
 end
 
@@ -67,19 +67,19 @@ end
 `define STATE_LOAD  3'd3
 `define STATE_STORE 3'd4
 reg [2:0] state;
-reg goto_fetch_state;
-reg goto_decode_state;
 
 reg control_load;
 reg control_store;
 
 /* top level states */
 reg [2:0] nextstate;
-always @(goto_fetch_state or goto_decode_state or control_load or control_store)
+always @(rst or state or control_load or control_store)
 begin
-	if (goto_fetch_state)
+	if (rst)
+		nextstate = `STATE_RST;
+	else if (state == `STATE_RST || state == `STATE_LOAD || state == `STATE_STORE)
 		nextstate = `STATE_FETCH;
-	else if (goto_decode_state)
+	else if (state == `STATE_FETCH)
 		nextstate = `STATE_DECODE;
 	else if (control_load)
 		nextstate = `STATE_LOAD;
@@ -106,52 +106,19 @@ end
 
 always @(posedge clk)
 begin
-	if (rst) begin
-		pc <= 0; // 30'b111111111111111111111111111111;
-		state <= `STATE_RST;
-	end else begin
-		state <= nextstate;
-		case (nextstate)
-			`STATE_FETCH: begin
-				pc <= nextpc;
-			end
-			`STATE_DECODE: begin
-				pc <= aluout[29:0];
-				ir <= rmemdata;
-			end
-		endcase
-	end
-end
-
-always @(negedge clk)
-begin
-	if (rst) begin
-		goto_fetch_state <= 1;
-	end else begin
-		/* negative side of clk */
-		case (state)
-			`STATE_FETCH: begin
-				goto_fetch_state <= 0;
-				goto_decode_state <= 1;
-			end
-			`STATE_DECODE: begin
-				goto_fetch_state <= 0;
-				goto_decode_state <= 0;
-			end
-			`STATE_LOAD: begin
-				goto_fetch_state <= 1;
-				goto_decode_state <= 0;
-			end
-			`STATE_STORE: begin
-				goto_fetch_state <= 1;
-				goto_decode_state <= 0;
-			end
-			`STATE_RST: begin
-				goto_fetch_state <= 1;
-				goto_decode_state <= 0;
-			end
-		endcase
-	end
+	state <= nextstate;
+	case (nextstate)
+		`STATE_RST: begin
+			pc <= 0;
+		end
+		`STATE_FETCH: begin
+			pc <= nextpc;
+		end
+		`STATE_DECODE: begin
+			pc <= aluout[29:0];
+			ir <= rmemdata;
+		end
+	endcase
 end
 
 /* alu */
