@@ -1,3 +1,4 @@
+# vi: set ts=4 expandtab:
 properties:
 32 bit instructions
 16 registers
@@ -18,6 +19,7 @@ instruction forms
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 all immediates are sign extended
+all don't cares should be zero
 
                         00 -- immediate version
                         01 -- register,register
@@ -32,71 +34,85 @@ xor                     0?  00 d<4> 0101 a<4> b<4>,imm<16>      a ^ b
 lsl                     0?  00 d<4> 0110 a<4> b<4>,imm<16>      a << b
 lsr                     0?  00 d<4> 0111 a<4> b<4>,imm<16>      a >> b
 asr                     0?  00 d<4> 1000 a<4> b<4>,imm<16>      a >>> b (sign extend)
-mov                     0?  00 d<4> 1001 ign  b<4>,imm<16>      b
-mvb                     0?  00 d<4> 1010 ign  b<4>,imm<16>      b & 0xffff
+mov                     0?  00 d<4> 1001 xxxx b<4>,imm<16>      b
+mvb                     0?  00 d<4> 1010 xxxx b<4>,imm<16>      b & 0xffff
 mvt                     0?  00 d<4> 1011 a<4> b<4>,imm<16>      a | (b << 16)
 
-slt                     0?  00 d<4> 1100 a<4> b<4>,imm<16>      a < b
-slte                    0?  00 d<4> 1101 a<4> b<4>,imm<16>      a <= b
-seq                     0?  00 d<4> 1110 a<4> b<4>,imm<16>      a == b
+seq                     0?  00 d<4> 1100 a<4> b<4>,imm<16>      a == b
+slt                     0?  00 d<4> 1101 a<4> b<4>,imm<16>      a < b
+slte                    0?  00 d<4> 1110 a<4> b<4>,imm<16>      a <= b
 
 unused                  0?  00 d<4> 1111 a<4> b<4>,imm<16>
 
-        load/store
-ldr                     0?  01 d<4> 0000 a<4> b<4>,imm<16>      ldr Rd, [Ra + Rb]
-str                     0?  10 d<4> 0000 a<4> b<4>,imm<16>      str Rd, [Ra + Rb]
-
         unused
-                        0?  11 xxxx xxxxxxxxxxxxxxxxxxxxx
+                        0?  01 xxxx xxxxxxxxxxxxxxxxxxxxx
+
+        load/store
+ldr                     0?  10 d<4> xxx0 a<4> b<4>,imm<16>      ldr Rd, [Ra + b]
+str                     0?  11 d<4> xxx0 a<4> b<4>,imm<16>      str Rd, [Ra + b]
+
+ldr                     0?  10 d<4> xxx1 xxxx b<4>,imm<16>      ldr Rd, [PC + b]
+str                     0?  11 d<4> xxx1 xxxx b<4>,imm<16>      str Rd, [PC + b]
+
+            ldr/str future expansion:
+                base register update
+                byte/halfword
+                multireg save
 
         branch
-b<l><z,nz>              10  0L d<4> cn imm<22>
-        l = save old PC+1 into link register
-        c = do a zero/notzero test against Rd
-        n = if c, test for zero or !zero in register Rd
+b<l><z,nz>              10  0c d<4> Lz imm<22>
+            L = save old PC+4 into link register
+            c = do a zero/notzero test against Rd
+            z = if c, test for zero or !zero in register Rd
 
-        imm<22> is shifted left 2, sign extended
+            if !c, d<4> field xxxx
 
-b<l><z,nz>      r       10  1L d<4> cn xx a<4> xxxxxxxxxxxx
-        -same as above, but register target
-        -bottom 2 bits of reg target ignored
+            imm<22> is shifted left 2, sign extended
+
+b<l><z,nz>      r       10  1c d<4> Lz xx a<4> xxxxxxxxxxxx
+            same as above, but register target
+            bottom 2 bits of reg target ignored
+
+            branch future expansion:
+                interrupt return
 
         unused
                         11  xxxxxxx xxxxxxxxxxxxxxxxxxxxx
 
 pseudo instructions:
-mvn     a, b    -   rsb a, b, #0
-not     a, b    -   xor a, b, #0
-li      a, #imm -   mvb a, #(imm & 0xffff); mvt a, #(imm >> 16)
+neg     a, b        -   rsb a, b, #0
+sub     a, #imm, b  -   rsb a, b, #imm
+not     a, b        -   xor a, b, #0
+li      a, #imm     -   mvb a, #(imm & 0xffff); mvt a, #(imm >> 16)
 
 common algorithms:
 
-a < b and branch
-clt     cr, a, b
-bz      cr
+a < b and branch - blt
+slt     cr, a, b
+bnz     cr
 
-a > b and branch
+a > b and branch - bgt
 slte    cr, a, b
 bz      cr
 
-a <= b and branch
-clte    cr, a, b
-bz      cr
+a <= b and branch - blte
+slte    cr, a, b
+bnz     cr
 
-a >= b and branch
+a >= b and branch - bgte
 slt     cr, a, b
 bz      cr
 
-a == b and branch
-ceq     cr, a, b
-bz      cr
+a == b and branch - bge
+seq     cr, a, b
+bnz     cr
 
-a != b and branch
+a != b and branch - bne
 seq     cr, a, b
 bz      cr
 
 test for negative
-clt     a, #0
+slt     a, #0
 
 64bit add   c = a + b
 add     cl, al, bl
