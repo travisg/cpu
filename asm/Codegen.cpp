@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2011-2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -232,9 +232,9 @@ Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 		case OP_MOV:  i |= ALU(OP_MOV_NUM); goto alucommon; \
 		case OP_MVB:  i |= ALU(OP_MVB_NUM); goto alucommon; \
 		case OP_MVT:  i |= ALU(OP_MVT_NUM); goto alucommon; \
+		case OP_SEQ:  i |= ALU(OP_SEQ_NUM); goto alucommon; \
 		case OP_SLT:  i |= ALU(OP_SLT_NUM); goto alucommon; \
-		case OP_SLTE: i |= ALU(OP_SLTE_NUM); goto alucommon; \
-		case OP_SEQ:  i |= ALU(OP_SEQ_NUM); goto alucommon
+		case OP_SLTE: i |= ALU(OP_SLTE_NUM); goto alucommon
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
@@ -340,14 +340,14 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Reg r2)
 		case OP_NOT:
 			i |= FORM_IMM | OP(0) | ALU(OP_XOR_NUM) | RD(r1.num) | RA(r2.num) | IMM16(0);
 			break;
-		case OP_BLZ: // blz r, r
-			i |= BRANCH_L;
-			goto shared_b;
 		case OP_BLNZ: // blnz r, r
 			i |= BRANCH_L;
-		case OP_BNZ: // bnz r, r
-			i |= BRANCH_N;
+			goto shared_b;
+		case OP_BLZ: // blz r, r
+			i |= BRANCH_L;
 		case OP_BZ: // bz  r, r
+			i |= BRANCH_Z;
+		case OP_BNZ: // bnz r, r
 shared_b:
 			i |= FORM_BRANCH | BRANCH_R | BRANCH_C | RD(r1.num) | RA(r2.num);
 			break;
@@ -415,14 +415,14 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
 				i |= IMM16(imm >> 16);
 			}
 			break;
-		case OP_BLZ: // blz r, #imm
-			i |= BRANCH_L;
-			goto shared_b;
 		case OP_BLNZ: // blnz r, #imm
 			i |= BRANCH_L;
-		case OP_BNZ: // bnz r, #imm
-			i |= BRANCH_N;
+			goto shared_b;
+		case OP_BLZ: // blz r, #imm
+			i |= BRANCH_L;
 		case OP_BZ: // bz  r, #imm
+			i |= BRANCH_Z;
+		case OP_BNZ: // bnz r, #imm
 shared_b:
 			i |= FORM_BRANCH | BRANCH_C | RD(r1.num);
 			if (fixup_branch_immediate(&imm, 22) < 0)
@@ -457,14 +457,14 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
 			i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
 			AddFixup(identifier, curaddr, FIXUP_IMM32_TOP);
 			break;
-		case OP_BLZ: // blz r, identifier
-			i |= BRANCH_L;
-			goto shared_b;
 		case OP_BLNZ: // blnz r, identifier
 			i |= BRANCH_L;
-		case OP_BNZ: // bnz r, identifier
-			i |= BRANCH_N;
+			goto shared_b;
+		case OP_BLZ: // blz r, identifier
+			i |= BRANCH_L;
 		case OP_BZ: // bz  r, identifier
+			i |= BRANCH_Z;
+		case OP_BNZ: // bnz r, identifier
 shared_b:
 			i |= FORM_BRANCH | BRANCH_C | RD(r1.num);
 			AddFixup(identifier, curaddr, FIXUP_IMM22_REL);
@@ -564,10 +564,10 @@ void Codegen::EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm)
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
 		case OP_LDR:
-			i |= OP(1);
+			i |= OP(OP_LOAD_UNSHIFTED);
 			goto ldrstr_common;
 		case OP_STR:
-			i |= OP(2);
+			i |= OP(OP_STORE_UNSHIFTED);
 ldrstr_common:
 			i |= FORM_IMM | ALU(0) | RD(r1.num) | RA(r2.num);
 
@@ -592,10 +592,10 @@ void Codegen::EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3)
 	uint32_t i = 0;
 	switch (ins->GetOpcode()) {
 		case OP_LDR:
-			i |= OP(1);
+			i |= OP(OP_LOAD_UNSHIFTED);
 			goto ldrstr_common;
 		case OP_STR:
-			i |= OP(2);
+			i |= OP(OP_STORE_UNSHIFTED);
 ldrstr_common:
 			i |= FORM_REG | ALU(0) | RD(r1.num) | RA(r2.num) | RB(r3.num);
 			break;

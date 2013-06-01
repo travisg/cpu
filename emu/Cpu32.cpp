@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2011-2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -66,13 +66,16 @@ void Cpu32::SetVerbose(bool _verbose)
 	verbose = _verbose;
 }
 
+
 void Cpu32::Run()
 {
 	uint64_t cycle = 0;
 
 	assert(mem);
 
-	for (;; cycle++) {
+    bool done = false;
+    while (!done) {
+        cycle++;
 		word ins = mem->Read(pc & ~0x3);
 		
 		if (verbose)
@@ -88,10 +91,11 @@ void Cpu32::Run()
 				b = Decodeimm16_signed(ins);
 				goto alucommon;
 			case FORM_REG_UNSHIFTED:
+
 				b = r[DecodeRb(ins)]; 
 alucommon:
 				word a = r[DecodeRa(ins)];
-				if (DecodeOp(ins) == 0) { // alu op
+				if (DecodeOp(ins) == OP_ALU_UNSHIFTED) { // alu op
 					switch (DecodeALUOp(ins)) {
 						case OP_ADD_NUM: res = a + b; break;
 						case OP_SUB_NUM: res = a - b; break;
@@ -105,18 +109,18 @@ alucommon:
 						case OP_MOV_NUM: res = b; break;
 						case OP_MVB_NUM: res = b & 0xffff; break;
 						case OP_MVT_NUM: res = a | (b << 16); break;
+						case OP_SEQ_NUM: res = a == b; break;
 						case OP_SLT_NUM: res = a < b; break;
 						case OP_SLTE_NUM: res = a <= b; break;
-						case OP_SEQ_NUM: res = a == b; break;
 						default:
 							goto undefined;
 					}
 
 					r[DecodeRd(ins)] = res;
-				} else if (DecodeOp(ins) == 1) { // load
+				} else if (DecodeOp(ins) == OP_LOAD_UNSHIFTED) { // load
 					res = mem->Read(a + b);
 					r[DecodeRd(ins)] = res;
-				} else if (DecodeOp(ins) == 2) { // store
+				} else if (DecodeOp(ins) == OP_STORE_UNSHIFTED) { // store
 					mem->Write(a + b, r[DecodeRd(ins)]);
 				} else {
 					goto undefined;
@@ -127,7 +131,7 @@ alucommon:
 			case FORM_BRANCH_UNSHIFTED: {
 				word target;
 
-				if (BIT(ins, BRANCH_R_BITPOS)) {
+				if (DecodeBranchR(ins)) {
 					target = r[DecodeRa(ins)];
 				} else {
 					target = pc + Decodeimm22_signed(ins);
@@ -136,20 +140,27 @@ alucommon:
 
 				// if it's a conditional branch, test and drop out if it fails
 				bool take = true;
-				if (BIT(ins, BRANCH_C_BITPOS)) {
+				if (DecodeBranchC(ins)) {
 					word test = r[DecodeRd(ins)];
-					if (BIT(ins, BRANCH_N_BITPOS)) {
-						take = test != 0;
-					} else {
+					if (DecodeBranchZ(ins)) {
 						take = test == 0;
+					} else {
+						take = test != 0;
 					}
 				}
 
+
 				if (take) {
 //					TRACEF("taking branch\n");
-					if (BIT(ins, BRANCH_L_BITPOS)) {
+					if (DecodeBranchL(ins)) {
 						r[LR] = pc;
 					}
+
+                    /* look for infinite loop */
+                    if (target == pc - 4) {
+                        printf("infinite loop detected, exiting\n");
+                        done = true;
+                    }
 
 					pc = target;
 				}
@@ -171,7 +182,7 @@ alucommon:
 //			printf("%lld cycles\n", cycle);
 
 		if (cycleLimit > 0 && cycle == cycleLimit)
-			break;
+            done = true;
 
 		continue;
 

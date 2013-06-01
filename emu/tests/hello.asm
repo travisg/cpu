@@ -6,7 +6,7 @@ start:
 	li	r0, string
 	bl	printstr
 
-	li	r0, string
+	li	r0, string2
 	bl	printstr
 
 end:
@@ -46,6 +46,8 @@ done:
 
 string:
 	.asciiz "Hello World!\n"
+string2:
+	.asciiz "Another line\n"
 
 stack:
 	.skip #0x100

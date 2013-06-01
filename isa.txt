@@ -15,7 +15,8 @@ instruction forms
 --------------------------------
 00ppddddppppaaaaiiiiiiiiiiiiiiii
 01ppddddppppaaaabbbbxxxxxxxxxxxx
-10ppddddppiiiiiiiiiiiiiiiiiiiiii
+100pddddppiiiiiiiiiiiiiiiiiiiiii
+101pddddppxxaaaaxxxxxxxxxxxxxxxx
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 all immediates are sign extended

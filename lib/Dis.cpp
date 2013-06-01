@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2011-2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -58,25 +58,25 @@ std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 	int imm22_signed = Decodeimm22_signed(word);
 
 	switch (form) {
-		case 0: // imm alu/load/store
-		case 1: // reg alu/load/store
-			if (op == 0) { // aluops
+		case FORM_IMM_UNSHIFTED: // imm alu/load/store
+		case FORM_REG_UNSHIFTED: // reg alu/load/store
+			if (op == OP_ALU_UNSHIFTED) { // aluops
 				switch (aluop) {
-					case 0: ADDSTR("add "); break;
-					case 1: ADDSTR("sub "); break;
-					case 2: ADDSTR("rsb "); break;
-					case 3: ADDSTR("and "); break;
-					case 4: ADDSTR("or "); break;
-					case 5: ADDSTR("xor "); break;
-					case 6: ADDSTR("lsl "); break;
-					case 7: ADDSTR("lsr "); break;
-					case 8: ADDSTR("asr "); break;
-					case 9: ADDSTR("mov "); break;
-					case 10: ADDSTR("mvb "); break;
-					case 11: ADDSTR("mvt "); break;
-					case 12: ADDSTR("slt "); break;
-					case 13: ADDSTR("slte "); break;
-					case 14: ADDSTR("seq "); break;
+					case OP_ADD_NUM:  ADDSTR("add "); break;
+					case OP_SUB_NUM:  ADDSTR("sub "); break;
+					case OP_RSB_NUM:  ADDSTR("rsb "); break;
+					case OP_AND_NUM:  ADDSTR("and "); break;
+					case OP_OR_NUM:   ADDSTR("or "); break;
+					case OP_XOR_NUM:  ADDSTR("xor "); break;
+					case OP_LSL_NUM:  ADDSTR("lsl "); break;
+					case OP_LSR_NUM:  ADDSTR("lsr "); break;
+					case OP_ASR_NUM:  ADDSTR("asr "); break;
+					case OP_MOV_NUM:  ADDSTR("mov "); break;
+					case OP_MVB_NUM:  ADDSTR("mvb "); break;
+					case OP_MVT_NUM:  ADDSTR("mvt "); break;
+					case OP_SEQ_NUM:  ADDSTR("seq "); break;
+					case OP_SLT_NUM:  ADDSTR("slt "); break;
+					case OP_SLTE_NUM: ADDSTR("slte "); break;
 					default: goto undefined;
 				}
 
@@ -84,21 +84,21 @@ std::string Dis::Dissassemble(uint32_t word, uint flags, uint32_t curaddr)
 				ADDSTR(", ");
 
 				// don't display this on mov and mvb
-				if (aluop != 9 && aluop != 10) {
+				if (aluop != OP_MOV_NUM && aluop != OP_MVB_NUM) {
 					ADDREG(Ra);
 					ADDSTR(", ");
 				}
 
-				if (form == 0) { // imm
+				if (form == FORM_IMM_UNSHIFTED) { // imm
 					ADDSTR("#");
 					ADDNUM(imm16_signed);
 				} else {
 					ADDREG(Rb);
 				}
-			} else if (op == 1) { // load/store
+			} else if (op == OP_LOAD_UNSHIFTED) { // load/store
 				ADDSTR("ldr ");
 				goto loadstore_shared;
-			} else if (op == 2) { // store
+			} else if (op == OP_STORE_UNSHIFTED) { // store
 				ADDSTR("str ");
 
 loadstore_shared:
@@ -107,7 +107,7 @@ loadstore_shared:
 				ADDREG(Ra);
 				ADDSTR(", ");
 
-				if (form == 0) { // imm
+				if (form == FORM_IMM_UNSHIFTED) { // imm
 					ADDSTR("#");
 					ADDNUM(imm16_signed);
 				} else {
@@ -118,16 +118,16 @@ loadstore_shared:
 				goto undefined;
 			}
 			break;
-		case 2: // branch
+		case FORM_BRANCH_UNSHIFTED: // branch
 			ADDSTR("b");
-			if (BIT(word, 28))
+			if (DecodeBranchL(word))
 				ADDSTR("l");
 
-			if (BIT(word, 23)) { // conditional
-				if (BIT(word, 22)) // negative conditional
-					ADDSTR("nz");
-				else
+			if (DecodeBranchC(word)) { // conditional
+				if (DecodeBranchZ(word)) // zero conditional
 					ADDSTR("z");
+				else
+					ADDSTR("nz");
 
 				ADDSTR(" ");
 				ADDREG(Rd);
@@ -137,7 +137,7 @@ loadstore_shared:
 			}
 
 			// register or label
-			if (BIT(word, 29)) { // register
+			if (DecodeBranchR(word)) { // register
 				ADDREG(Ra);
 			} else { // label
 				ADDSTR("#");
@@ -155,7 +155,7 @@ loadstore_shared:
 				}
 			}
 			break;
-		case 3: // undefined
+		default: // undefined
 			goto undefined;
 	}
 
