@@ -29,17 +29,17 @@
 
 class Mem {
 public:
-	Mem(size_t size);
-	~Mem();
+    Mem(size_t size);
+    ~Mem();
 
-	int LoadFile(const std::string &file, uint32_t addr);
+    int LoadFile(const std::string &file, uint32_t addr);
 
-	uint32_t Read(uint32_t addr);
-	void Write(uint32_t addr, uint32_t val);
+    uint32_t Read(uint32_t addr);
+    void Write(uint32_t addr, uint32_t val);
 
 private:
-	size_t size;
-	uint8_t *mem;
+    size_t size;
+    uint8_t *mem;
 };
 
 

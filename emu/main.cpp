@@ -35,65 +35,65 @@ static bool verbose = false;
 
 static void usage(int argc, char **argv)
 {
-	fprintf(stderr, "usage: %s [-c cycle limit] -v <binary>\n", argv[0]);
+    fprintf(stderr, "usage: %s [-c cycle limit] -v <binary>\n", argv[0]);
 }
 
 int main(int argc, char **argv)
 {
-	// read in any overriding configuration from the command line
-	for(;;) {
-		int c;
-		int option_index = 0;
+    // read in any overriding configuration from the command line
+    for(;;) {
+        int c;
+        int option_index = 0;
 
-		static struct option long_options[] = {
-			{"cycles", 1, 0, 'c'},
-			{"verbose", 0, 0, 'v'},
-			{0, 0, 0, 0},
-		};
+        static struct option long_options[] = {
+            {"cycles", 1, 0, 'c'},
+            {"verbose", 0, 0, 'v'},
+            {0, 0, 0, 0},
+        };
 
-		c = getopt_long(argc, argv, "c:v", long_options, &option_index);
-		if(c == -1)
-			break;
+        c = getopt_long(argc, argv, "c:v", long_options, &option_index);
+        if(c == -1)
+            break;
 
-		switch(c) {
-			case 'c':
-				cycle_limit = atoll(optarg);
-				break;
-			case 'v':
-				verbose = true;
-				break;
-			default:
-				usage(argc, argv);
-				break;
-		}
-	}
+        switch(c) {
+            case 'c':
+                cycle_limit = atoll(optarg);
+                break;
+            case 'v':
+                verbose = true;
+                break;
+            default:
+                usage(argc, argv);
+                break;
+        }
+    }
 
-	if (argc - optind < 1) {
-		usage(argc, argv);
-		return 1;
-	}
+    if (argc - optind < 1) {
+        usage(argc, argv);
+        return 1;
+    }
 
-	argc -= optind;
-	argv += optind;
+    argc -= optind;
+    argv += optind;
 
-	Mem *m = new Mem(4*1024*1024);
+    Mem *m = new Mem(4*1024*1024);
 
-	if (m->LoadFile(argv[0], 0) < 0) {
-		fprintf(stderr, "error loading file\n");
-		return 1;
-	}
-	
-	Cpu32 *c = new Cpu32();
+    if (m->LoadFile(argv[0], 0) < 0) {
+        fprintf(stderr, "error loading file\n");
+        return 1;
+    }
 
-	c->SetMem(m);
-	if (cycle_limit > 0)
-		c->SetCycleLimit(cycle_limit);
-	c->SetVerbose(verbose);
+    Cpu32 *c = new Cpu32();
 
-	c->Reset();
-	c->Run();
-	
-	delete m;
+    c->SetMem(m);
+    if (cycle_limit > 0)
+        c->SetCycleLimit(cycle_limit);
+    c->SetVerbose(verbose);
 
-	return 0;
+    c->Reset();
+    c->Run();
+    
+    delete m;
+
+    return 0;
 }

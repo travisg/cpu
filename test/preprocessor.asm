@@ -1,17 +1,17 @@
 #define CONST 99
 
 #define MACRO(x) \
-	li	r0, #x \
-	add r0, r0, #1
+    li  r0, #x \
+    add r0, r0, #1
 
 label:
-	li 	r0, #CONST
+    li  r0, #CONST
 
 #if 0
-	shouldfail
+    shouldfail
 #endif
-	
-	MACRO(1)
-	MACRO(2)
+    
+    MACRO(1)
+    MACRO(2)
 
-	
+    

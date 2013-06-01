@@ -25,18 +25,18 @@
 
 static inline bool inrange_unsigned(uint32_t val, unsigned int bitrange)
 {
-	uint32_t max = (1 << (bitrange)) - 1;
+    uint32_t max = (1 << (bitrange)) - 1;
 
-	return val <= max;
+    return val <= max;
 }
 
 static inline bool inrange_signed(uint32_t _val, unsigned int bitrange)
 {
-	int32_t val = _val;
-	int32_t max = (1 << (bitrange - 1)) - 1;
-	int32_t min = -(max + 1);
+    int32_t val = _val;
+    int32_t max = (1 << (bitrange - 1)) - 1;
+    int32_t min = -(max + 1);
 
-	return (val <= max) && (val >= min);
+    return (val <= max) && (val >= min);
 }
 
 #endif

@@ -30,31 +30,31 @@ class Symtab;
 
 class Sym {
 public:
-	enum Type {
-		KEYWORD = 0,
-		IDENTIFIER
-	};
+    enum Type {
+        KEYWORD = 0,
+        IDENTIFIER
+    };
 
-	Sym(Type t, const std::string &name, int opcode = 0);
-	virtual ~Sym();
+    Sym(Type t, const std::string &name, int opcode = 0);
+    virtual ~Sym();
 
-	Type GetType() const { return t; }
-	const std::string &GetName() const { return name; }
-	int GetOpcode() const { return opcode; }
+    Type GetType() const { return t; }
+    const std::string &GetName() const { return name; }
+    int GetOpcode() const { return opcode; }
 
 private:
-	Type t;
+    Type t;
 
-	std::string name;
-	int opcode;
+    std::string name;
+    int opcode;
 
-	friend class Symtab;
+    friend class Symtab;
 };
 
 inline std::ostream& operator<<(std::ostream& o, const Sym &s)
 {
-	o << s.GetName();
-	return o;
+    o << s.GetName();
+    return o;
 }
 
 #endif

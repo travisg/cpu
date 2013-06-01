@@ -33,14 +33,14 @@ typedef std::list<Sym *>::iterator symIterator;
 
 class Symtab {
 public:
-	Symtab();
-	virtual ~Symtab();
+    Symtab();
+    virtual ~Symtab();
 
-	Sym *Lookup(const std::string &str);
-	void AddSymbol(Sym *s);
+    Sym *Lookup(const std::string &str);
+    void AddSymbol(Sym *s);
 
 private:
-	symList symlist;
+    symList symlist;
 };
 
 extern Symtab *gSymtab;

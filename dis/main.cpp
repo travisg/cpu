@@ -36,84 +36,84 @@ FILE *fp;
 
 static void usage(int argc, char **argv)
 {
-	fprintf(stderr, "usage: %s [-o output file] <input file>\n", argv[0]);
-	exit(1);
+    fprintf(stderr, "usage: %s [-o output file] <input file>\n", argv[0]);
+    exit(1);
 }
 
 int open_input(const char *file)
 {
-	fp = fopen(file, "r");
-	if (!fp)
-		return -1;
+    fp = fopen(file, "r");
+    if (!fp)
+        return -1;
 
 
-	return 0;
+    return 0;
 }
 
 int main(int argc, char **argv)
 {
-	int err;
+    int err;
 
-	// read in any overriding configuration from the command line
-	for(;;) {
-		int c;
-		int option_index = 0;
+    // read in any overriding configuration from the command line
+    for(;;) {
+        int c;
+        int option_index = 0;
 
-		static struct option long_options[] = {
-			{"output", 1, 0, 'o'},
-			{0, 0, 0, 0},
-		};
-		
-		c = getopt_long(argc, argv, "o:", long_options, &option_index);
-		if(c == -1)
-			break;
+        static struct option long_options[] = {
+            {"output", 1, 0, 'o'},
+            {0, 0, 0, 0},
+        };
+        
+        c = getopt_long(argc, argv, "o:", long_options, &option_index);
+        if(c == -1)
+            break;
 
-		switch(c) {
-			case 'o':
-				output_filename = optarg;
-				break;
-			default:
-				usage(argc, argv);
-				break;
-		}
-	}
+        switch(c) {
+            case 'o':
+                output_filename = optarg;
+                break;
+            default:
+                usage(argc, argv);
+                break;
+        }
+    }
 
-	if (argc - optind < 1) {
-		usage(argc, argv);
-		return 1;
-	}
+    if (argc - optind < 1) {
+        usage(argc, argv);
+        return 1;
+    }
 
-	argc -= optind;
-	argv += optind;
+    argc -= optind;
+    argv += optind;
 
-	if (open_input(argv[0]) < 0) {
-		fprintf(stderr, "error opening input file\n");
-		return 1;
-	}
+    if (open_input(argv[0]) < 0) {
+        fprintf(stderr, "error opening input file\n");
+        return 1;
+    }
 
-	Dis d;
+    Dis d;
 
-	uint32_t addr = 0;
-	while (!feof(fp)) {
-		uint32_t word;
-		
-		if (fread(&word, sizeof(word), 1, fp) < 1)
-			break;
+    uint32_t addr = 0;
+    while (!feof(fp)) {
+        uint32_t word;
+        
+        if (fread(&word, sizeof(word), 1, fp) < 1)
+            break;
 
-		word = ntohl(word);
+        word = ntohl(word);
 
-//		printf("0x%08x\n", word);
+//      printf("0x%08x\n", word);
 
-		std::string str = d.Dissassemble(word, Dis::DIS_FLAG_SHOWTARGET, addr);
-		printf("0x%08x: %08x  %s\n", addr, word, str.c_str());
+        std::string str = d.Dissassemble(word, Dis::DIS_FLAG_SHOWTARGET, addr);
+        printf("0x%08x: %08x  %s\n", addr, word, str.c_str());
 
-		addr += 4;
-	}
+        addr += 4;
+    }
 
-	fclose(fp);
+    fclose(fp);
 
-	err = 0;
+    err = 0;
 
 err:
-	return err;
+    return err;
 }

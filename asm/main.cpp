@@ -42,143 +42,143 @@ static int preprocess(const std::string &file);
 
 static void usage(int argc, char **argv)
 {
-	fprintf(stderr, "usage: %s [-o output file] <input file>\n", argv[0]);
-	exit(1);
+    fprintf(stderr, "usage: %s [-o output file] <input file>\n", argv[0]);
+    exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int err;
+    int err;
 
-	// read in any overriding configuration from the command line
-	for(;;) {
-		int c;
-		int option_index = 0;
+    // read in any overriding configuration from the command line
+    for(;;) {
+        int c;
+        int option_index = 0;
 
-		static struct option long_options[] = {
-			{"output", 1, 0, 'o'},
-			{0, 0, 0, 0},
-		};
-		
-		c = getopt_long(argc, argv, "o:", long_options, &option_index);
-		if(c == -1)
-			break;
+        static struct option long_options[] = {
+            {"output", 1, 0, 'o'},
+            {0, 0, 0, 0},
+        };
+        
+        c = getopt_long(argc, argv, "o:", long_options, &option_index);
+        if(c == -1)
+            break;
 
-		switch(c) {
-			case 'o':
-				output_filename = optarg;
-				break;
-			default:
-				usage(argc, argv);
-				break;
-		}
-	}
+        switch(c) {
+            case 'o':
+                output_filename = optarg;
+                break;
+            default:
+                usage(argc, argv);
+                break;
+        }
+    }
 
-	if (argc - optind < 1) {
-		usage(argc, argv);
-		return 1;
-	}
+    if (argc - optind < 1) {
+        usage(argc, argv);
+        return 1;
+    }
 
-	argc -= optind;
-	argv += optind;
+    argc -= optind;
+    argv += optind;
 
-	// start preprocessor
-	int preprocess_out = preprocess(argv[0]);
-	if (preprocess_out < 0) {
-		fprintf(stderr, "error starting preprocessor\n");
-		return 1;
-	}
+    // start preprocessor
+    int preprocess_out = preprocess(argv[0]);
+    if (preprocess_out < 0) {
+        fprintf(stderr, "error starting preprocessor\n");
+        return 1;
+    }
 
-	if (open_input(preprocess_out, argv[0]) < 0) {
-		fprintf(stderr, "error opening input file\n");
-		return 1;
-	}
+    if (open_input(preprocess_out, argv[0]) < 0) {
+        fprintf(stderr, "error opening input file\n");
+        return 1;
+    }
 
-	if (output_filename == "") {
-		// build one out of the input file
-		output_filename = std::string(argv[0]) + ".bin";
-		printf("output file %s\n", output_filename.c_str());
-	}
+    if (output_filename == "") {
+        // build one out of the input file
+        output_filename = std::string(argv[0]) + ".bin";
+        printf("output file %s\n", output_filename.c_str());
+    }
 
-	OutputFile *f = new OutputFile();
-	if (f->OpenFile(output_filename) < 0) {
-		fprintf(stderr, "error opening output file\n");
-		return 1;
-	}
+    OutputFile *f = new OutputFile();
+    if (f->OpenFile(output_filename) < 0) {
+        fprintf(stderr, "error opening output file\n");
+        return 1;
+    }
 
-	gSymtab = new Symtab();
-	gCodegen = new Codegen();
-	gCodegen->InitSymtab(gSymtab);
-	gCodegen->SetOutput(f);
+    gSymtab = new Symtab();
+    gCodegen = new Codegen();
+    gCodegen->InitSymtab(gSymtab);
+    gCodegen->SetOutput(f);
 
-	err = parse_source();
-	if (err < 0)
-		goto err;
-	
-	gCodegen->FixupPass();
+    err = parse_source();
+    if (err < 0)
+        goto err;
+    
+    gCodegen->FixupPass();
 
 err:
-	close(preprocess_out);
-	delete gCodegen;
-	delete gSymtab;
-	delete f;
+    close(preprocess_out);
+    delete gCodegen;
+    delete gSymtab;
+    delete f;
 
-	return err;
+    return err;
 }
 
 static int preprocess(const std::string &file)
 {
 
-	int fd = open(file.c_str(), O_RDONLY);
-//	printf("fd %d\n", fd);
-	if (fd < 0)
-		return -1;
+    int fd = open(file.c_str(), O_RDONLY);
+//  printf("fd %d\n", fd);
+    if (fd < 0)
+        return -1;
 
-	int pipes[2];
-	if (pipe(pipes) < 0) {
-		close(fd);
-		return -1;
-	}
+    int pipes[2];
+    if (pipe(pipes) < 0) {
+        close(fd);
+        return -1;
+    }
 
-//	printf("pipes %d %d\n", pipes[0], pipes[1]);
+//  printf("pipes %d %d\n", pipes[0], pipes[1]);
 
-	pid_t pid = fork();
-	if (pid == 0) {
-		// child
-//		printf("child\n");
+    pid_t pid = fork();
+    if (pid == 0) {
+        // child
+//      printf("child\n");
 
-		close(STDOUT_FILENO);
-		close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDIN_FILENO);
 
-		dup2(fd, STDIN_FILENO);
-		dup2(pipes[1], STDOUT_FILENO);
+        dup2(fd, STDIN_FILENO);
+        dup2(pipes[1], STDOUT_FILENO);
 
-		close(fd);
-		close(pipes[0]);
-		close(pipes[1]);
+        close(fd);
+        close(pipes[0]);
+        close(pipes[1]);
 
-		execlp("cpp", "cpp", NULL);
+        execlp("cpp", "cpp", NULL);
 
-		fprintf(stderr, "error execing preprocessor\n");
-		exit(1);
-	} else {
-		// parent
-//		printf("parent\n");
+        fprintf(stderr, "error execing preprocessor\n");
+        exit(1);
+    } else {
+        // parent
+//      printf("parent\n");
 
-		fflush(stdout);
+        fflush(stdout);
 
-		close(pipes[1]);
-		close(fd);
+        close(pipes[1]);
+        close(fd);
 
 #if 0
-		char buf[64];
-		int e;
-		while ((e = read(pipes[0], buf, sizeof(buf))) > 0) {
-			write(STDOUT_FILENO, buf, e);
-		}
+        char buf[64];
+        int e;
+        while ((e = read(pipes[0], buf, sizeof(buf))) > 0) {
+            write(STDOUT_FILENO, buf, e);
+        }
 #endif
-	}
+    }
 
-	return pipes[0];
+    return pipes[0];
 }
 

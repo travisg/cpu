@@ -23,9 +23,9 @@
 #include "Sym.h"
 
 Sym::Sym(Type _t, const std::string &_name, int _opcode)
-: 	t(_t),
-	name(_name),
-	opcode(_opcode)
+:   t(_t),
+    name(_name),
+    opcode(_opcode)
 {
 }
 

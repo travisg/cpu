@@ -29,26 +29,26 @@
 
 class OutputFile {
 public:
-	OutputFile();
-	virtual ~OutputFile();
+    OutputFile();
+    virtual ~OutputFile();
 
-	int OpenFile(const std::string &name);
+    int OpenFile(const std::string &name);
 
-	off_t Append(uint16_t word);
-	off_t Append(uint32_t word);
-	off_t Append(const std::string &str);
+    off_t Append(uint16_t word);
+    off_t Append(uint32_t word);
+    off_t Append(const std::string &str);
 
-	off_t Align(unsigned int alignment);
-	off_t Skip(unsigned int skip);
+    off_t Align(unsigned int alignment);
+    off_t Skip(unsigned int skip);
 
-	int WriteAt(off_t offset, uint16_t word);
-	int ReadAt(off_t offset, uint16_t *word);
-	int WriteAt(off_t offset, uint32_t word);
-	int ReadAt(off_t offset, uint32_t *word);
+    int WriteAt(off_t offset, uint16_t word);
+    int ReadAt(off_t offset, uint16_t *word);
+    int WriteAt(off_t offset, uint32_t word);
+    int ReadAt(off_t offset, uint32_t *word);
 
 private:
-	FILE *fp;
-	off_t pos;
+    FILE *fp;
+    off_t pos;
 };
 
 

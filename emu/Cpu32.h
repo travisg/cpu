@@ -27,20 +27,20 @@
 
 class Cpu32 : public Cpu {
 public:
-	Cpu32();
-	virtual ~Cpu32();
+    Cpu32();
+    virtual ~Cpu32();
 
-	virtual void SetCycleLimit(uint64_t limit);
-	virtual void SetVerbose(bool verbose);
-	virtual void Reset();
-	virtual void Run();
+    virtual void SetCycleLimit(uint64_t limit);
+    virtual void SetVerbose(bool verbose);
+    virtual void Reset();
+    virtual void Run();
 
 private:
-	uint32_t r[16];
-	uint32_t pc;
+    uint32_t r[16];
+    uint32_t pc;
 
-	uint64_t cycleLimit;
-	bool verbose;
+    uint64_t cycleLimit;
+    bool verbose;
 };
 
 

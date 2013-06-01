@@ -30,32 +30,32 @@ Symtab::Symtab()
 
 Symtab::~Symtab()
 {
-//	for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
-//		symlist.erase(i);
-//	}
+//  for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
+//      symlist.erase(i);
+//  }
 }
 
 Sym *Symtab::Lookup(const std::string &str)
 {
-	Sym *s;
+    Sym *s;
 
-	// see if it's already in the list
-	for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
-		s = (*i);
-		if (s->GetName() == str) {	
-			return s;
-		}
-	}
+    // see if it's already in the list
+    for (symIterator i = symlist.begin(); i != symlist.end(); i++) {
+        s = (*i);
+        if (s->GetName() == str) {  
+            return s;
+        }
+    }
 
-	// if it's not in the list, it must be a new identifier
-	s = new Sym(Sym::IDENTIFIER, str);
+    // if it's not in the list, it must be a new identifier
+    s = new Sym(Sym::IDENTIFIER, str);
 
-	symlist.push_back(s);
+    symlist.push_back(s);
 
-	return s;
+    return s;
 }
 
 void Symtab::AddSymbol(Sym *s)
 {
-	symlist.push_back(s);
+    symlist.push_back(s);
 }

@@ -27,17 +27,17 @@
 
 class Cpu {
 public:
-	Cpu() : mem(0) {}
-	virtual ~Cpu() {}
+    Cpu() : mem(0) {}
+    virtual ~Cpu() {}
 
-	void SetMem(Mem *m) { mem = m; }
+    void SetMem(Mem *m) { mem = m; }
 
-	virtual void SetCycleLimit(uint64_t limit) = 0;
-	virtual void SetVerbose(bool verbose) = 0;
-	virtual void Reset() = 0;
-	virtual void Run() = 0;
+    virtual void SetCycleLimit(uint64_t limit) = 0;
+    virtual void SetVerbose(bool verbose) = 0;
+    virtual void Reset() = 0;
+    virtual void Run() = 0;
 
 protected:
-	Mem *mem;
+    Mem *mem;
 };
 

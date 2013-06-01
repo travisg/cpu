@@ -35,7 +35,7 @@ class OutputFile;
 
 struct Reg {
 public:
-	unsigned int num;
+    unsigned int num;
 };
 
 // internal list of labels
@@ -50,69 +50,69 @@ typedef std::list<Fixup *>::iterator fixupIterator;
 
 class Codegen {
 public:
-	Codegen();
-	virtual ~Codegen();
+    Codegen();
+    virtual ~Codegen();
 
-	void InitSymtab(Symtab *tab);
+    void InitSymtab(Symtab *tab);
 
-	void AddLabel(Sym *s);
-	void Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3);
-	void Emit3Addr(Sym *ins, Reg r1, Reg r2, int imm);
-	void Emit3Addr(Sym *ins, Reg r1, Reg r2, Sym *identifier);
-	void Emit2Addr(Sym *ins, Reg r1, Reg r2);
-	void Emit2Addr(Sym *ins, Reg r1, int imm);
-	void Emit2Addr(Sym *ins, Reg r1, Sym *identifier);
-	void Emit1Addr(Sym *ins, Reg r1);
-	void Emit1Addr(Sym *ins, int imm);
-	void Emit1Addr(Sym *ins, Sym *identifier);
-	void EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm);
-	void EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3);
+    void AddLabel(Sym *s);
+    void Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3);
+    void Emit3Addr(Sym *ins, Reg r1, Reg r2, int imm);
+    void Emit3Addr(Sym *ins, Reg r1, Reg r2, Sym *identifier);
+    void Emit2Addr(Sym *ins, Reg r1, Reg r2);
+    void Emit2Addr(Sym *ins, Reg r1, int imm);
+    void Emit2Addr(Sym *ins, Reg r1, Sym *identifier);
+    void Emit1Addr(Sym *ins, Reg r1);
+    void Emit1Addr(Sym *ins, int imm);
+    void Emit1Addr(Sym *ins, Sym *identifier);
+    void EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm);
+    void EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3);
 
-	void AddData(Sym *identifier);
-	void AddData(int literal);
-	void AddData(const std::string &str);
+    void AddData(Sym *identifier);
+    void AddData(int literal);
+    void AddData(const std::string &str);
 
-	void Align(int align);
-	void Skip(int skip);
+    void Align(int align);
+    void Skip(int skip);
 
-	void SetOutput(OutputFile *f);
+    void SetOutput(OutputFile *f);
 
-	void FixupPass();
+    void FixupPass();
 
-	enum fixupType {
-		FIXUP_IMM16,
-		FIXUP_IMM22_REL,
-		FIXUP_IMM32,
-		FIXUP_IMM32_BOT,
-		FIXUP_IMM32_TOP,
-	};
+    enum fixupType {
+        FIXUP_IMM16,
+        FIXUP_IMM22_REL,
+        FIXUP_IMM32,
+        FIXUP_IMM32_BOT,
+        FIXUP_IMM32_TOP,
+    };
 
 protected:
-	void EmitInstruction(uint32_t ins);
-	
-	Label *LookupLabel(const std::string &name);
+    void EmitInstruction(uint32_t ins);
+    
+    Label *LookupLabel(const std::string &name);
 
-	Fixup *AddFixup(Sym *identifier, off_t addr, fixupType type);
+    Fixup *AddFixup(Sym *identifier, off_t addr, fixupType type);
 
 private:
 
-	Symtab *symtab;
-	OutputFile *out;
-	off_t curaddr;
+    Symtab *symtab;
+    OutputFile *out;
+    off_t curaddr;
 
-	labelList labels;
-	fixupList fixups;
+    labelList labels;
+    fixupList fixups;
 };
 
 extern Codegen *gCodegen;
 
 inline std::ostream& operator<<(std::ostream& o, const Reg &r)
 {
-	if (r.num == 8)
-		o << "pc";
-	else
-		o << "r" << r.num;
-	return o;
+    if (r.num == 8)
+        o << "pc";
+    else
+        o << "r" << r.num;
+    return o;
 }
 
 #endif
