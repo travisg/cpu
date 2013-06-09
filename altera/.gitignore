@@ -10,5 +10,6 @@ smart.log
 *.summary
 *.jdi
 *.smsg
+*.qws
 db
 incremental_db

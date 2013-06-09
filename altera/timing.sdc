@@ -1,6 +1,6 @@
-## Generated SDC file "cpu32.sdc"
+## Generated SDC file "testproj.out.sdc"
 
-## Copyright (C) 1991-2011 Altera Corporation
+## Copyright (C) 1991-2013 Altera Corporation
 ## Your use of Altera Corporation's design tools, logic functions 
 ## and other software and tools, and its AMPP partner logic 
 ## functions, and any output files from any of the foregoing 
@@ -17,12 +17,12 @@
 
 ## VENDOR  "Altera"
 ## PROGRAM "Quartus II"
-## VERSION "Version 11.1 Build 259 01/25/2012 Service Pack 2 SJ Web Edition"
+## VERSION "Version 13.0.0 Build 156 04/24/2013 SJ Web Edition"
 
-## DATE    "Sun Feb 19 21:29:41 2012"
+## DATE    "Sun Jun  9 13:09:50 2013"
 
 ##
-## DEVICE  "EP2C20F484C7"
+## DEVICE  "EP4CE115F29C7"
 ##
 
 
@@ -38,13 +38,14 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {CLOCK_24[0]} -period 41.666 -waveform { 0.000 20.833 } [get_ports { CLOCK_24[0] }]
-create_clock -name {CLOCK_50} -period 20 -waveform { 0.000 10 } [get_ports { CLOCK_50 }]
+create_clock -name {CLOCK_50} -period 20.000 -waveform { 0.000 10.000 } [get_ports { CLOCK_50 }]
 
 
 #**************************************************************
 # Create Generated Clock
 #**************************************************************
+
+
 
 #**************************************************************
 # Set Clock Latency
@@ -56,6 +57,10 @@ create_clock -name {CLOCK_50} -period 20 -waveform { 0.000 10 } [get_ports { CLO
 # Set Clock Uncertainty
 #**************************************************************
 
+set_clock_uncertainty -rise_from [get_clocks {CLOCK_50}] -rise_to [get_clocks {CLOCK_50}]  0.020  
+set_clock_uncertainty -rise_from [get_clocks {CLOCK_50}] -fall_to [get_clocks {CLOCK_50}]  0.020  
+set_clock_uncertainty -fall_from [get_clocks {CLOCK_50}] -rise_to [get_clocks {CLOCK_50}]  0.020  
+set_clock_uncertainty -fall_from [get_clocks {CLOCK_50}] -fall_to [get_clocks {CLOCK_50}]  0.020  
 
 
 #**************************************************************
