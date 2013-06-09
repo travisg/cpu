@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE EP2C20F484C7
 set_global_assignment -name TOP_LEVEL_ENTITY top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "11.1 SP2"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:21:24  FEBRUARY 11, 2012"
-set_global_assignment -name LAST_QUARTUS_VERSION "11.1 SP2"
+set_global_assignment -name LAST_QUARTUS_VERSION 13.0
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
@@ -341,9 +341,9 @@ set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING ON
 set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL OFF
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE BALANCED
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
-set_global_assignment -name VERILOG_FILE uart.v
+set_global_assignment -name VERILOG_FILE ../rtl/uart.v
+set_global_assignment -name VERILOG_FILE ../rtl/seven_segment.v
 set_global_assignment -name VERILOG_FILE ../rtl/sramcontroller.v
-set_global_assignment -name VERILOG_FILE seven_segment.v
 set_global_assignment -name VERILOG_FILE ../rtl/regfile.v
 set_global_assignment -name VERILOG_FILE ../rtl/library.v
 set_global_assignment -name VERILOG_FILE ../rtl/cpu.v
