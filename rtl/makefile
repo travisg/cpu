@@ -1,10 +1,10 @@
 IVL := iverilog
 
 SRC := \
-	cpu.v \
-	alu.v \
-	regfile.v \
-	library.v \
+	cpu/cpu.v \
+	cpu/alu.v \
+	cpu/regfile.v \
+	lib/library.v \
 	sram-issi.v
 
 #SRC += ../lib/library.v

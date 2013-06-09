@@ -31,46 +31,46 @@ assign clk_n = ~clk;
 
 always 
   begin
-	 clk = 0;
-	 #12 ;
-	 clk = 1;
-	 #12 ;
+     clk = 0;
+     #12 ;
+     clk = 1;
+     #12 ;
   end
 
 /*
 sram #(AWIDTH) dram(
-	.ce(dram_ce),
-	.we(dram_we),
-	.re(dram_re),
-	.addr(dramaddr[AWIDTH-1:0]),
-	.datain(dramdata),
-	.dataout(dramdata)
-	);
+    .ce(dram_ce),
+    .we(dram_we),
+    .re(dram_re),
+    .addr(dramaddr[AWIDTH-1:0]),
+    .datain(dramdata),
+    .dataout(dramdata)
+    );
 */
 
 /*
 IS61LV25616 ram(
-	.A(dramaddr[17:0]), 
-	.IO(dramdata[15:0]), 
-	.CE_(0), 
-	.OE_(!dram_re), 
-	.WE_(!dram_we), 
-	.LB_(0), 
-	.UB_(0)
+    .A(dramaddr[17:0]), 
+    .IO(dramdata[15:0]), 
+    .CE_(0), 
+    .OE_(!dram_re), 
+    .WE_(!dram_we), 
+    .LB_(0), 
+    .UB_(0)
 );
 
 IS61LV25616 ram2(
-	.A(dramaddr[17:0]), 
-	.IO(dramdata[31:16]), 
-	.CE_(0), 
-	.OE_(!dram_re), 
-	.WE_(!dram_we), 
-	.LB_(0), 
-	.UB_(0)
+    .A(dramaddr[17:0]), 
+    .IO(dramdata[31:16]), 
+    .CE_(0), 
+    .OE_(!dram_re), 
+    .WE_(!dram_we), 
+    .LB_(0), 
+    .UB_(0)
 );
 */
 
-reg	rst;
+reg rst;
 
 wire [29:0] memaddr;
 wire [31:0] rmemdata;
@@ -79,48 +79,48 @@ wire mem_oe;
 wire mem_we;
 
 cpu cpu0(
-	.clk(clk),
-	.rst(rst),
-	.mem_re(mem_oe),
-	.mem_we(mem_we),
-	.memaddr(memaddr),
-	.rmemdata(rmemdata),
-	.wmemdata(wmemdata)
-	);
+    .clk(clk),
+    .rst(rst),
+    .mem_re(mem_oe),
+    .mem_we(mem_we),
+    .memaddr(memaddr),
+    .rmemdata(rmemdata),
+    .wmemdata(wmemdata)
+    );
 
 rom rom0(
-	.clk(clk),
-	.re(mem_oe),
-	.we(mem_we),
-	.addr(memaddr),
-	.rdata(rmemdata),
-	.wdata(wmemdata)
+    .clk(clk),
+    .re(mem_oe),
+    .we(mem_we),
+    .addr(memaddr),
+    .rdata(rmemdata),
+    .wdata(wmemdata)
 );
 
 /* hold the cpu in reset for a few clocks */
 initial begin
-	rst = 1;
-	#40 rst = 0;
+    rst = 1;
+    #40 rst = 0;
 end
 
 /*
 initial begin
-	$readmemb("ram.bank0", ram.bank0);
-	$readmemb("ram.bank1", ram.bank1);
-	$readmemb("ram.bank2", ram2.bank0);
-	$readmemb("ram.bank3", ram2.bank1);
+    $readmemb("ram.bank0", ram.bank0);
+    $readmemb("ram.bank1", ram.bank1);
+    $readmemb("ram.bank2", ram2.bank0);
+    $readmemb("ram.bank3", ram2.bank1);
 end
 */
 
 initial
 begin
-//	 $monitor("%05t: clk %h, rst %h, memaddr %d, memdata %h, mem_re %d, mem_we %d", 
-//		$time, clk, rst, memaddr, memdata, mem_re, mem_we);
+//   $monitor("%05t: clk %h, rst %h, memaddr %d, memdata %h, mem_re %d, mem_we %d", 
+//      $time, clk, rst, memaddr, memdata, mem_re, mem_we);
 end
 
 initial begin
-	$dumpfile("testbench.vcd");
-	$dumpvars(0,testbench);
+    $dumpfile("testbench.vcd");
+    $dumpvars(0,testbench);
 end
 
 initial #1000 $finish;
@@ -128,25 +128,27 @@ initial #1000 $finish;
 endmodule
 
 module rom(
-	input clk,
-	input re,
-	input we,
-	input [29:0] addr,
-	output reg [31:0] rdata,
-	input [31:0] wdata
+    input clk,
+    input re,
+    input we,
+    input [29:0] addr,
+    output reg [31:0] rdata,
+    input [31:0] wdata
 );
 
 reg [31:0] rom [0:255];
 
 initial begin
-	$readmemh("test2.asm.hex", rom);
+    $readmemh("test2.asm.hex", rom);
 end
 
 always @(posedge clk) begin
-	if (re)
-		rdata <= rom[addr];
-	if (we)
-		rom[addr] <= wdata;
+    if (re)
+        rdata <= rom[addr];
+    else
+        rdata <= #1 32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
+    if (we)
+        rom[addr] <= wdata;
 end
 
 endmodule
