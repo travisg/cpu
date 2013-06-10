@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -22,35 +22,47 @@
  */
 `include "defines.v"
 
-module alu(
-    input [3:0] op,
-    input [31:0] a,
-    input [31:0] b,
-    output reg [31:0] res
+module  stage1_fetch(
+    /* cpu global */
+    input clk_i,
+    input rst_i,
+
+    /* inter-stage */
+    input stall_i,
+    input take_branch_i,
+    input [29:0] branch_pc_i,
+    output [31:0] ir_o,
+    output [29:0] nextpc_o,
+
+    /* memory interface */
+    output reg re_o,
+    output [29:0] rmemaddr_o,
+    input [31:0] rmemdata_i
 );
 
-always @(op or a or b)
-begin
-    case (op)
-        `ALU_OP_ADD: res = a + b;
-        `ALU_OP_SUB: res = a - b;
-        `ALU_OP_RSB: res = b - a;
-        `ALU_OP_AND: res = a & b;
-        `ALU_OP_OR:  res = a | b;
-        `ALU_OP_XOR: res = a ^ b;
-        `ALU_OP_LSL: res = a << b;
-        `ALU_OP_LSR: res = a >> b;
-        `ALU_OP_ASR: res = a >>> b;
-        `ALU_OP_MOV: res = b;
-        `ALU_OP_MVB: res = { 16'd0, b[15:0] };
-        `ALU_OP_MVT: res = a | (b << 16);
+reg [29:0] pc;
 
-        `ALU_OP_SEQ: res = a == b;
-        `ALU_OP_SLT: res = a < b;
-        `ALU_OP_SLTE: res = a <= b;
-        `ALU_OP_UND: res = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-    endcase
+/*
+initial begin
+    pc <= 0;
+end
+*/
+
+assign nextpc_o = take_branch_i ? branch_pc_i : pc + 1;
+assign rmemaddr_o = nextpc_o;
+assign ir_o = rmemdata_i;
+
+always @(posedge clk_i)
+begin
+    re_o <= 1;
+    if (rst_i) begin
+        pc <= 30'b111111111111111111111111111111;
+        //re_o <= 0;
+    end else if (!stall_i) begin
+        pc <= nextpc_o;
+        //re_o <= 1;
+    end
 end
 
-endmodule
 
+endmodule // stage1_fetch

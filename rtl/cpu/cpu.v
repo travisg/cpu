@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2011-2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -20,18 +20,165 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+`include "defines.v"
+
 module  cpu(
     input clk,
     input rst,
     output mem_re,
     output mem_we,
-    output reg [29:0] memaddr,
+    output [29:0] memaddr,
     input [31:0]  rmemdata,
     output [31:0] wmemdata,
 
     output [31:0] debugout
 );
 
+stage1_fetch stage1(
+    .clk_i(clk),
+    .rst_i(rst),
+
+    /* inter-stage */
+    .take_branch_i(take_branch_4to1),
+    .branch_pc_i(branch_pc_4to1),
+    .stall_i(stall_2to1),
+    .ir_o(ir_1to2),
+    .nextpc_o(nextpc_1to2),
+
+    /* memory interface */
+    .re_o(mem_re),
+    .rmemaddr_o(memaddr),
+    .rmemdata_i(rmemdata)
+);
+
+wire stall_2to1;
+wire [31:0] ir_1to2;
+wire [29:0] nextpc_1to2;
+wire take_branch_4to1;
+wire [29:0] branch_pc_4to1;
+
+stage2_decode stage2(
+    .clk_i(clk),
+    .rst_i(rst),
+
+    /* inter-stage */
+    .ir_i(ir_1to2),
+    .nextpc_i(nextpc_1to2),
+    .stall_i(stall_3to2),
+
+    /* from stage 5 */
+    .do_wb_i(do_wb_5to2),
+    .wb_reg_i(wb_reg_5to2),
+    .wb_val_i(wb_val_5to2),
+
+    /* output to stage3 */
+    .stall_o(stall_2to1),
+    .control_branch_o(control_branch_2to3),
+    .control_load_o(control_load_2to3),
+    .control_store_o(control_store_2to3),
+
+    .aluop_o(aluop_2to3),
+    .alu_a_o(alu_a_2to3),
+    .alu_b_o(alu_b_2to3),
+    .branch_test_val_o(branch_test_val_2to3),
+
+    .do_wb_o(do_wb_2to3),
+    .wb_reg_o(wb_reg_2to3)
+);
+
+wire do_wb_5to2;
+wire [3:0] wb_reg_5to2;
+wire [31:0] wb_val_5to2;
+
+wire stall_3to2;
+wire [29:0] nextpc_2to3;
+wire [1:0] control_branch_2to3;
+wire control_load_2to3;
+wire control_store_2to3;
+
+wire [3:0] aluop_2to3;
+wire [31:0] alu_a_2to3;
+wire [31:0] alu_b_2to3;
+wire [31:0] branch_test_val_2to3;
+
+wire do_wb_2to3;
+wire [3:0] wb_reg_2to3;
+
+stage3_execute stage3(
+    .clk_i(clk),
+    .rst_i(rst),
+
+    .stall_i(0),
+
+    .control_branch_i(control_branch_2to3),
+    .control_load_i(control_load_2to3),
+    .control_store_i(control_store_2to3),
+    .aluop_i(aluop_2to3),
+    .alu_a_i(alu_a_2to3),
+    .alu_b_i(alu_b_2to3),
+    .branch_test_val_i(branch_test_val_2to3),
+
+    .do_wb_i(do_wb_2to3),
+    .wb_reg_i(wb_reg_2to3),
+
+    .stall_o(stall_3to2),
+    .alu_o(alu_3to4),
+
+    .control_load_o(control_load_3to4),
+    .control_store_o(control_store_3to4),
+    .control_take_branch_o(control_take_branch_3to4),
+    .do_wb_o(do_wb_3to4),
+    .wb_reg_o(wb_reg_3to4)
+);
+
+wire stall_4to3;
+wire control_load_3to4;
+wire control_store_3to4;
+wire control_take_branch_3to4;
+wire do_wb_3to4;
+wire [3:0] wb_reg_3to4;
+
+wire [31:0] alu_3to4;
+
+stage4_memory stage4(
+    .clk_i(clk),
+    .rst_i(rst),
+
+    .alu_i(alu_3to4),
+    .control_load_i(control_load_3to4),
+    .control_store_i(control_store_3to4),
+    .control_take_branch_i(control_take_branch_3to4),
+    .do_wb_i(do_wb_3to4),
+    .wb_reg_i(wb_reg_3to4),
+
+    .stall_o(stall_4to3),
+    .take_branch_o(take_branch_4to1),
+    .branch_pc_o(branch_pc_4to1),
+
+    .do_wb_o(do_wb_4to5),
+    .wb_reg_o(wb_reg_4to5),
+    .wb_val_o(wb_val_4to5)
+);
+
+wire do_wb_4to5;
+wire [3:0] wb_reg_4to5;
+wire [31:0] wb_val_4to5;
+
+stage5_writeback stage5(
+    .clk_i(clk),
+    .rst_i(rst),
+
+    .do_wb_i(do_wb_4to5),
+    .wb_reg_i(wb_reg_4to5),
+    .wb_val_i(wb_val_4to5),
+
+    .do_wb_o(do_wb_5to2),
+    .wb_reg_o(wb_reg_5to2),
+    .wb_val_o(wb_val_5to2)
+);
+
+
+`ifdef UNUSED
 assign wmemdata = (mem_we && !mem_re) ? reg_c : 32'bz;
 assign debugout = pc;
 
@@ -306,6 +453,7 @@ begin
         end
     endcase
 end
+`endif
 
 endmodule 
 

@@ -144,7 +144,7 @@ end
 
 always @(posedge clk) begin
     if (re)
-        rdata <= rom[addr];
+        rdata <= #8 rom[addr];
     else
         rdata <= #1 32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
     if (we)

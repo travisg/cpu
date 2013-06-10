@@ -51,7 +51,7 @@ end
 assign adata = R[asel];
 assign bdata = R[bsel];
 assign cdata = R[csel];
-   
+
 endmodule
 
 module regfile1out #(parameter WIDTH=32, parameter RSELWIDTH=4) (

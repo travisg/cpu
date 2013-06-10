@@ -1,0 +1,78 @@
+[*]
+[*] GTKWave Analyzer v3.3.34 (w)1999-2012 BSI
+[*] Mon Jun 10 06:03:00 2013
+[*]
+[dumpfile] "/home/geist/svn/cpu/rtl/testbench.vcd"
+[dumpfile_mtime] "Mon Jun 10 05:52:55 2013"
+[dumpfile_size] 46945
+[savefile] "/home/geist/svn/cpu/rtl/wave.sav"
+[timestart] 0
+[size] 1920 1177
+[pos] -1 -1
+*-6.000000 280 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] testbench.
+[treeopen] testbench.cpu0.
+[treeopen] testbench.cpu0.stage2.
+[sst_width] 219
+[signals_width] 343
+[sst_expanded] 1
+[sst_vpaned_height] 353
+@28
+testbench.cpu0.clk
+testbench.cpu0.rst
+testbench.cpu0.mem_re
+testbench.cpu0.mem_we
+@23
+testbench.cpu0.memaddr[29:0]
+@22
+testbench.cpu0.wmemdata[31:0]
+testbench.cpu0.rmemdata[31:0]
+testbench.cpu0.debugout[31:0]
+testbench.cpu0.ir_1to2[31:0]
+testbench.cpu0.nextpc_1to2[29:0]
+@28
+testbench.cpu0.stall_2to1
+testbench.cpu0.control_load_2to3
+testbench.cpu0.control_store_2to3
+@2022
+^1 /tmp/../home/geist/svn/cpu/rtl/gtkwave.filter.alu.txt
+testbench.cpu0.aluop_2to3[3:0]
+@22
+testbench.cpu0.alu_a_2to3[31:0]
+testbench.cpu0.alu_b_2to3[31:0]
+@28
+testbench.cpu0.control_branch_2to3[1:0]
+@22
+testbench.cpu0.branch_test_val_2to3[31:0]
+@28
+testbench.cpu0.do_wb_2to3
+@22
+testbench.cpu0.wb_reg_2to3[3:0]
+@28
+testbench.cpu0.stall_3to2
+@22
+testbench.cpu0.alu_3to4[31:0]
+@28
+testbench.cpu0.control_load_3to4
+testbench.cpu0.control_store_3to4
+testbench.cpu0.control_take_branch_3to4
+testbench.cpu0.do_wb_3to4
+@22
+testbench.cpu0.wb_reg_3to4[3:0]
+@28
+testbench.cpu0.stall_4to3
+testbench.cpu0.take_branch_4to1
+@22
+testbench.cpu0.branch_pc_4to1[29:0]
+@28
+testbench.cpu0.do_wb_4to5
+@22
+testbench.cpu0.wb_reg_4to5[3:0]
+testbench.cpu0.wb_val_4to5[31:0]
+@28
+testbench.cpu0.do_wb_5to2
+@22
+testbench.cpu0.wb_reg_5to2[3:0]
+testbench.cpu0.wb_val_5to2[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

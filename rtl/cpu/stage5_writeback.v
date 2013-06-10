@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2013 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -22,35 +22,33 @@
  */
 `include "defines.v"
 
-module alu(
-    input [3:0] op,
-    input [31:0] a,
-    input [31:0] b,
-    output reg [31:0] res
+module  stage5_writeback(
+    /* cpu global */
+    input clk_i,
+    input rst_i,
+
+    /* from stage 4 */
+    input do_wb_i,
+    input [3:0] wb_reg_i,
+    input [31:0] wb_val_i,
+
+    /* back to stage2, writeback to register file */
+    output reg do_wb_o,
+    output reg [3:0] wb_reg_o,
+    output reg [31:0] wb_val_o
 );
 
-always @(op or a or b)
+always @(posedge clk_i)
 begin
-    case (op)
-        `ALU_OP_ADD: res = a + b;
-        `ALU_OP_SUB: res = a - b;
-        `ALU_OP_RSB: res = b - a;
-        `ALU_OP_AND: res = a & b;
-        `ALU_OP_OR:  res = a | b;
-        `ALU_OP_XOR: res = a ^ b;
-        `ALU_OP_LSL: res = a << b;
-        `ALU_OP_LSR: res = a >> b;
-        `ALU_OP_ASR: res = a >>> b;
-        `ALU_OP_MOV: res = b;
-        `ALU_OP_MVB: res = { 16'd0, b[15:0] };
-        `ALU_OP_MVT: res = a | (b << 16);
-
-        `ALU_OP_SEQ: res = a == b;
-        `ALU_OP_SLT: res = a < b;
-        `ALU_OP_SLTE: res = a <= b;
-        `ALU_OP_UND: res = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-    endcase
+    if (rst_i) begin
+        do_wb_o <= 0;
+        wb_reg_o <= 0;
+        wb_val_o <= 0;
+    end else begin
+        do_wb_o <= do_wb_i;
+        wb_reg_o <= wb_reg_i;
+        wb_val_o <= wb_val_i;
+    end
 end
 
-endmodule
-
+endmodule // stage5_writeback

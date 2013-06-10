@@ -2,6 +2,11 @@ IVL := iverilog
 
 SRC := \
 	cpu/cpu.v \
+	cpu/stage1_fetch.v \
+	cpu/stage2_decode.v \
+	cpu/stage3_execute.v \
+	cpu/stage4_memory.v \
+	cpu/stage5_writeback.v \
 	cpu/alu.v \
 	cpu/regfile.v \
 	lib/library.v \
@@ -16,7 +21,7 @@ EXTRADEPS := test2.asm.hex
 all: testbench 
 
 testbench: $(SRC)
-	$(IVL) -o testbench $(SRC)
+	$(IVL) -Icpu -Ilib -o testbench $(SRC)
 
 testbench.vcd: testbench $(EXTRADEPS)
 	./testbench

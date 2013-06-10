@@ -96,10 +96,10 @@ module mux4 #(parameter WIDTH=32)
     );
 always @ (*)
   case (sel)
-    2'b00: out <= in0;
-    2'b01: out <= in1;
-    2'b10: out <= in2;
-    2'b11: out <= in3;
+    2'b00: out = in0;
+    2'b01: out = in1;
+    2'b10: out = in2;
+    2'b11: out = in3;
   endcase
 endmodule
 
@@ -111,14 +111,14 @@ module mux8 #(parameter WIDTH=32) (
     );
 always @ (*)
     case (sel)
-    3'b000: out <= in0;
-    3'b001: out <= in1;
-    3'b010: out <= in2;
-    3'b011: out <= in3;
-    3'b100: out <= in4;
-    3'b101: out <= in5;
-    3'b110: out <= in6;
-    3'b111: out <= in7;
+    3'b000: out = in0;
+    3'b001: out = in1;
+    3'b010: out = in2;
+    3'b011: out = in3;
+    3'b100: out = in4;
+    3'b101: out = in5;
+    3'b110: out = in6;
+    3'b111: out = in7;
     endcase
 endmodule
 
@@ -130,22 +130,22 @@ module mux16 #(parameter WIDTH=32) (
     );
 always @ (*)
     case (sel)
-    4'b0000: out <= in00;
-    4'b0001: out <= in01;
-    4'b0010: out <= in02;
-    4'b0011: out <= in03;
-    4'b0100: out <= in04;
-    4'b0101: out <= in05;
-    4'b0110: out <= in06;
-    4'b0111: out <= in07;
-    4'b1000: out <= in08;
-    4'b1001: out <= in09;
-    4'b1010: out <= in10;
-    4'b1011: out <= in11;
-    4'b1100: out <= in12;
-    4'b1101: out <= in13;
-    4'b1110: out <= in14;
-    4'b1111: out <= in15;
+    4'b0000: out = in00;
+    4'b0001: out = in01;
+    4'b0010: out = in02;
+    4'b0011: out = in03;
+    4'b0100: out = in04;
+    4'b0101: out = in05;
+    4'b0110: out = in06;
+    4'b0111: out = in07;
+    4'b1000: out = in08;
+    4'b1001: out = in09;
+    4'b1010: out = in10;
+    4'b1011: out = in11;
+    4'b1100: out = in12;
+    4'b1101: out = in13;
+    4'b1110: out = in14;
+    4'b1111: out = in15;
     endcase
 endmodule
 module register #(parameter WIDTH=32) (
@@ -154,7 +154,7 @@ module register #(parameter WIDTH=32) (
     input [WIDTH-1:0] din,
     output [WIDTH-1:0] dout
     );
-    
+
 reg [WIDTH-1:0] data;
 initial data = 0;
 always @ (posedge clk)

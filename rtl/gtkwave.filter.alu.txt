@@ -1,0 +1,16 @@
+0 add
+1 sub
+2 rsb
+3 and
+4 or
+5 xor
+6 lsl
+7 lsr
+8 asr
+9 mov
+a mvb
+B mvt
+C seq
+D slt
+E slte
+F und
