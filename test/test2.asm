@@ -5,6 +5,13 @@ start:
     li  sp, stack_end
 
     li  r0, string
+    add r0, r0, #0
+    add r0, r0, #0
+    bnz r0, start
+    add r0, r0, #0
+    add r0, r0, #0
+    add r0, r0, #0
+    add r0, r0, #0
     bl  printstr
 
     li  r0, #0

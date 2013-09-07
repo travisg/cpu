@@ -1,3 +1,5 @@
+# header comment
+; start
 start:
     add     r0, r0, r0
 ; what
@@ -13,6 +15,7 @@ what:
     mov     r5, what
     not     r0, r1
     mvn     r0, r1
+    add     sp, lr, pc
 
     b       #4
 
@@ -92,10 +95,14 @@ label:
 
 .align #512
 
+.text
+
 string:
     .asciiz "this is a string"
     .asciiz "a second string"
     .asciiz "a string with numbers 234234234 and control \n asdfasdf"
+    .asciiz "a string with escaped strings in it \" test \""
+    .asciiz 'a string with single tic'
 
     .asciiz "un" ; unaligned
     add     r4, r5, r6
