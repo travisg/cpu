@@ -1,4 +1,4 @@
-## Generated SDC file "testproj.out.sdc"
+## Generated SDC file "timing.sdc"
 
 ## Copyright (C) 1991-2013 Altera Corporation
 ## Your use of Altera Corporation's design tools, logic functions 
@@ -19,7 +19,7 @@
 ## PROGRAM "Quartus II"
 ## VERSION "Version 13.0.0 Build 156 04/24/2013 SJ Web Edition"
 
-## DATE    "Sun Jun  9 13:09:50 2013"
+## DATE    "Sat Sep 21 14:44:58 2013"
 
 ##
 ## DEVICE  "EP4CE115F29C7"
@@ -44,7 +44,6 @@ create_clock -name {CLOCK_50} -period 20.000 -waveform { 0.000 10.000 } [get_por
 #**************************************************************
 # Create Generated Clock
 #**************************************************************
-
 
 
 #**************************************************************

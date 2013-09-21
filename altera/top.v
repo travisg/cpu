@@ -236,9 +236,11 @@ begin
     rst <= !KEY[0];
 end
 
+wire fastclk = CLOCK_50;
+
 /* latch halt on the negedge of the main clock to keep it from glitching the clock
    if you hit the key in the middle of an up phase */
-always @(negedge CLOCK_50)
+always @(negedge fastclk)
 begin
     if (!KEY[1]) begin
         halt <= 1;
@@ -247,8 +249,9 @@ begin
     end
 end
 
+
 /* clock generation */
-wire slowclk = !halt ? CLOCK_50 : 0;
+wire slowclk = !halt ? fastclk : 0;
 
 /* instantiate the cpu */
 wire cpu_re;

@@ -590,6 +590,17 @@ set_global_assignment -name SMART_RECOMPILE ON
 
 
 
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE BALANCED
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
+set_global_assignment -name VERILOG_FILE ../rtl/cpu/defines.v
 set_global_assignment -name VERILOG_FILE ../rtl/cpu/stage5_writeback.v
 set_global_assignment -name VERILOG_FILE ../rtl/cpu/stage4_memory.v
 set_global_assignment -name VERILOG_FILE ../rtl/cpu/stage3_execute.v
