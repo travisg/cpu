@@ -231,9 +231,9 @@ initial begin
     halt <= 0;
 end
 
-always @*
+always @(posedge fastclk)
 begin
-    rst <= !KEY[0];
+    rst = !KEY[0];
 end
 
 wire fastclk = CLOCK_50;

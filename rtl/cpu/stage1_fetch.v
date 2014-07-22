@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Travis Geiselbrecht
+ * Copyright (c) 2013-2014 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -42,11 +42,9 @@ module  stage1_fetch(
 
 reg [29:0] pc;
 
-/*
 initial begin
-    pc <= 0;
+    pc = 0;
 end
-*/
 
 assign nextpc_o = take_branch_i ? branch_pc_i : pc + 30'b1;
 assign rmemaddr_o = nextpc_o;
@@ -54,13 +52,13 @@ assign ir_o = rmemdata_i;
 
 always @(posedge clk_i)
 begin
-    re_o <= 1;
+    re_o = 0;
     if (rst_i) begin
         pc <= 30'b111111111111111111111111111111;
-        //re_o <= 0;
+        re_o = 1;
     end else if (!stall_i) begin
         pc <= nextpc_o;
-        //re_o <= 1;
+        re_o = 1;
     end
 end
 

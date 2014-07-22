@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Travis Geiselbrecht
+ * Copyright (c) 2011-2014 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -34,19 +34,24 @@ module  cpu(
     output [31:0] debugout
 );
 
+/* unused bits for now */
+assign mem_we = 0;
+assign wmemdata = 0;
+assign debugout = 0;
+
 wire stall_2to1;
 wire [31:0] ir_1to2;
 wire [29:0] nextpc_1to2;
-wire take_branch_4to1;
-wire [29:0] branch_pc_4to1;
+wire take_branch_3to1;
+wire [29:0] branch_pc_3to1;
 
 stage1_fetch stage1(
     .clk_i(clk),
     .rst_i(rst),
 
     /* inter-stage */
-    .take_branch_i(take_branch_4to1),
-    .branch_pc_i(branch_pc_4to1),
+    .take_branch_i(take_branch_3to1),
+    .branch_pc_i(branch_pc_3to1),
     .stall_i(stall_2to1),
     .ir_o(ir_1to2),
     .nextpc_o(nextpc_1to2),
@@ -58,7 +63,7 @@ stage1_fetch stage1(
 );
 
 wire do_wb_5to2;
-wire [3:0] wb_reg_5to2;
+wire [4:0] wb_reg_5to2;
 wire [31:0] wb_val_5to2;
 
 wire stall_3to2;
@@ -74,7 +79,7 @@ wire [31:0] alu_b_2to3;
 wire [31:0] branch_test_val_2to3;
 
 wire do_wb_2to3;
-wire [3:0] wb_reg_2to3;
+wire [4:0] wb_reg_2to3;
 
 stage2_decode stage2(
     .clk_i(clk),
@@ -109,9 +114,8 @@ wire stall_4to3;
 
 wire control_load_3to4;
 wire control_store_3to4;
-wire control_take_branch_3to4;
 wire do_wb_3to4;
-wire [3:0] wb_reg_3to4;
+wire [4:0] wb_reg_3to4;
 
 wire [31:0] alu_3to4;
 
@@ -135,15 +139,17 @@ stage3_execute stage3(
     .stall_o(stall_3to2),
     .alu_o(alu_3to4),
 
+    .take_branch_o(take_branch_3to1),
+    .branch_pc_o(branch_pc_3to1),
+
     .control_load_o(control_load_3to4),
     .control_store_o(control_store_3to4),
-    .control_take_branch_o(control_take_branch_3to4),
     .do_wb_o(do_wb_3to4),
     .wb_reg_o(wb_reg_3to4)
 );
 
 wire do_wb_4to5;
-wire [3:0] wb_reg_4to5;
+wire [4:0] wb_reg_4to5;
 wire [31:0] wb_val_4to5;
 
 stage4_memory stage4(
@@ -153,13 +159,10 @@ stage4_memory stage4(
     .alu_i(alu_3to4),
     .control_load_i(control_load_3to4),
     .control_store_i(control_store_3to4),
-    .control_take_branch_i(control_take_branch_3to4),
     .do_wb_i(do_wb_3to4),
     .wb_reg_i(wb_reg_3to4),
 
     .stall_o(stall_4to3),
-    .take_branch_o(take_branch_4to1),
-    .branch_pc_o(branch_pc_4to1),
 
     .do_wb_o(do_wb_4to5),
     .wb_reg_o(wb_reg_4to5),

@@ -4,14 +4,12 @@
 start:
     li  sp, stack_end
 
-    li  r0, string
+    li  r1, string
     add r0, r0, #0
     add r0, r0, #0
-    bnz r0, start
-    add r0, r0, #0
-    add r0, r0, #0
-    add r0, r0, #0
-    add r0, r0, #0
+    bnz r1, start
+    add r0, r0, #0  ; branch delay slot
+    add r0, r0, #0  ; branch delay slot
     bl  printstr
 
     li  r0, #0

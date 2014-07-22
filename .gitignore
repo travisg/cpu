@@ -7,3 +7,4 @@ cscope.out
 local.mk
 *.bin
 *.hex
+*.lst

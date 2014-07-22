@@ -33,17 +33,12 @@ module  stage4_memory(
     input control_store_i,
     input control_take_branch_i,
     input do_wb_i,
-    input [3:0] wb_reg_i,
-
+    input [4:0] wb_reg_i,
     output stall_o,
-
-    /* to stage1 */
-    output reg take_branch_o,
-    output [29:0] branch_pc_o,
 
     /* to stage5 */
     output reg do_wb_o,
-    output reg [3:0] wb_reg_o,
+    output reg [4:0] wb_reg_o,
     output reg [31:0] wb_val_o
 );
 
@@ -52,14 +47,6 @@ reg control_load;
 reg control_store;
 
 assign stall_o = 0;
-assign branch_pc_o = alu_r[29:0];
-
-/*
-initial begin
-    ir <= 0;
-    nextpc_o <= 0;
-end
-*/
 
 always @(posedge clk_i)
 begin
@@ -67,14 +54,12 @@ begin
         alu_r <= 0;
         control_load <= 0;
         control_store <= 0;
-        take_branch_o <= 0;
         do_wb_o <= 0;
         wb_reg_o <= 0;
     end else begin
         alu_r <= alu_i;
         control_load <= control_load_i;
         control_store <= control_store_i;
-        take_branch_o <= control_take_branch_i;
         do_wb_o <= do_wb_i;
         wb_reg_o <= wb_reg_i;
     end

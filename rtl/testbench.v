@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Travis Geiselbrecht
+ * Copyright (c) 2011-2014 Travis Geiselbrecht
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files
@@ -31,15 +31,15 @@ parameter AWIDTH = 16;
 reg [31:0] count;
 
 initial
-	count <= 0;
+    count = 0;
 
 always @(posedge clk)
-	count <= count + 1;
+    count <= count + 1;
 
 always @(count)
 begin
-	if (count == 1000)
-		$finish;
+    if (count == 100)
+        $finish;
 
 end
 
@@ -72,10 +72,10 @@ rom rom0(
 
 /* hold the cpu in reset for a few clocks */
 always @(count)
-	if (count < 10)
-		rst = 1;
-	else
-		rst = 0;
+    if (count < 10)
+        rst = 1;
+    else
+        rst = 0;
 
 endmodule
 

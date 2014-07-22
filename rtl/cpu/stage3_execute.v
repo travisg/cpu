@@ -42,16 +42,19 @@ module  stage3_execute(
     input [31:0] alu_b_i,
     input [31:0] branch_test_val_i,
     input do_wb_i,
-    input [3:0] wb_reg_i,
+    input [4:0] wb_reg_i,
+
+    /* to stage1 */
+    output reg take_branch_o,
+    output [29:0] branch_pc_o,
 
     /* to stage 4 */
     output [31:0] alu_o,
     output reg control_load_o,
     output reg control_store_o,
-    output reg control_take_branch_o,
 
     output reg do_wb_o,
-    output reg [3:0] wb_reg_o
+    output reg [4:0] wb_reg_o
 );
 
 assign stall_o = stall_i;
@@ -76,12 +79,12 @@ begin
         alu_a <= 0;
         alu_b <= 0;
         branch_test_val <= 0;
-        control_branch <= `CONTROL_BRANCH_NOTAKE;
+        control_branch <= `CONTROL_BRANCH_COND_NZ;
         control_load_o <= 0;
         control_store_o <= 0;
         do_wb_o <= 0;
         wb_reg_o <= 0;
-    end if (!stall_i) begin
+    end else if (!stall_i) begin
         aluop <= aluop_i;
         alu_a <= alu_a_i;
         alu_b <= alu_b_i;
@@ -97,20 +100,19 @@ end
 always @(control_branch or branch_test_val)
 begin
     case (control_branch)
-        `CONTROL_BRANCH_NOTAKE: begin
-            control_take_branch_o = 0;
-        end
-        `CONTROL_BRANCH_TAKE: begin
-            control_take_branch_o = 1;
+        default: begin
+            take_branch_o = 0;
         end
         `CONTROL_BRANCH_COND_NZ: begin
-            control_take_branch_o = (branch_test_val != 0) ? 1'b1 : 1'b0;
+            take_branch_o = (branch_test_val != 0);
         end
         `CONTROL_BRANCH_COND_Z: begin
-            control_take_branch_o = (branch_test_val == 0) ? 1'b1 : 1'b0;
+            take_branch_o = (branch_test_val == 0);
         end
     endcase
 end
+
+assign branch_pc_o = alu_o[29:0];
 
 alu alu0(
     .op(aluop),

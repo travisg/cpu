@@ -40,11 +40,12 @@ begin
         `ALU_OP_LSL: res = a << b;
         `ALU_OP_LSR: res = a >> b;
         `ALU_OP_ASR: res = $signed(a) >>> b;
-        `ALU_OP_MVT: res = { b[15:0], a[15:0] };
+        `ALU_OP_MVB: res = { a[31:16], b[15:0] };
+        `ALU_OP_MVT: res = a | (b << 16);
 
-        `ALU_OP_SEQ: res = a == b;
-        `ALU_OP_SLT: res = a < b;
-        `ALU_OP_SLTE: res = a <= b;
+        `ALU_OP_SEQ: res = { 31'd0 , a == b};
+        `ALU_OP_SLT: res = { 31'd0, a < b};
+        `ALU_OP_SLTE: res = { 31'd0, a <= b};
         default: res = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
     endcase
 end

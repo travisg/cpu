@@ -29,12 +29,12 @@ module  stage5_writeback(
 
     /* from stage 4 */
     input do_wb_i,
-    input [3:0] wb_reg_i,
+    input [4:0] wb_reg_i,
     input [31:0] wb_val_i,
 
     /* back to stage2, writeback to register file */
     output reg do_wb_o,
-    output reg [3:0] wb_reg_o,
+    output reg [4:0] wb_reg_o,
     output reg [31:0] wb_val_o
 );
 
