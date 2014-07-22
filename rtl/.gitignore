@@ -1,5 +1,6 @@
 *.bak
+build
 testbench
-testbench.vcd
+*.vcd
 ram.bank*
 ram.allbanks
