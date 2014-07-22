@@ -251,7 +251,7 @@ end
 
 
 /* clock generation */
-wire slowclk = !halt ? fastclk : 0;
+wire slowclk = !halt ? fastclk : 1'b0;
 
 /* instantiate the cpu */
 wire cpu_re;

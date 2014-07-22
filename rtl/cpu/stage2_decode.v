@@ -47,7 +47,7 @@ module  stage2_decode(
 
     output reg [3:0] aluop_o,
     output [31:0] alu_a_o,
-    output [31:0] alu_b_o,
+    output reg [31:0] alu_b_o,
     output [31:0] branch_test_val_o,
 
     output reg do_wb_o,
@@ -55,12 +55,6 @@ module  stage2_decode(
 );
 
 reg [31:0] ir;
-`define REG_W_SEL_DC  2'bxx
-`define REG_W_SEL_ALU 2'b00
-`define REG_W_SEL_MEM 2'b01
-`define REG_W_SEL_PC  2'b10
-`define REG_W_SEL_ZERO 2'b11
-
 reg [29:0] nextpc;
 assign stall_o = stall_i;
 
@@ -86,7 +80,15 @@ begin
     end
 end
 
-reg [3:0] control_branch;
+wire [1:0] decode_form = ir[31:30];
+wire [5:0] decode_op = ir[29:24];
+wire [3:0] decode_rd = ir[27:24];
+wire [3:0] decode_aluop = ir[23:20];
+wire [3:0] decode_ra = ir[19:16];
+wire [3:0] decode_rb = ir[15:12];
+wire [31:0] decode_imm16_signed = (ir[15]) ? { 16'b1111111111111111, ir[15:0] } : { 16'b0000000000000000, ir[15:0] };
+wire [31:0] decode_imm22_signed = (ir[21]) ? { 10'b1111111111, ir[21:0] } : { 10'b0000000000, ir[21:0] };
+
 
 /* register file */
 reg [3:0] reg_a_sel;
@@ -103,24 +105,44 @@ regfile #(32, 4) regs(
     .asel(reg_a_sel),
     .adata(reg_a),
     .bsel(reg_b_sel),
-    .bdata(reg_b),
-    .csel(decode_rd),
-    .cdata(branch_test_val_o)
+    .bdata(reg_b)
     );
+
+assign branch_test_val_o = reg_b;
 
 /* alu a input mux */
 reg alu_a_mux_sel;
 
+assign alu_a_o = (alu_a_mux_sel == 0) ? reg_a : { 2'b0, nextpc };
+
+/*
 mux2 #(32) alu_a_mux(
     .sel(alu_a_mux_sel),
     .in0(reg_a),
     .in1({ 2'b0, nextpc }),
     .out(alu_a_o)
     );
+*/
 
 /* alu b input mux */
 reg [1:0] alu_b_mux_sel;
 
+/*
+assign alu_b_o = (alu_b_mux_sel == 2'b00) ? reg_b :
+    (alu_b_mux_sel == 2'b01) ? decode_imm16_signed :
+    (alu_b_mux_sel == 2'b10) ? decode_imm22_signed :
+    (alu_b_mux_sel == 2'b11) ? 32'd2 : 32'dx;
+*/
+
+always @ (*)
+  case (alu_b_mux_sel)
+    2'b00: alu_b_o = reg_b;
+    2'b01: alu_b_o = decode_imm16_signed;
+    2'b10: alu_b_o = decode_imm22_signed;
+    2'b11: alu_b_o = 32'd2;
+  endcase
+
+/*
 mux4 #(32) alu_b_mux(
     .sel(alu_b_mux_sel),
     .in0(reg_b),
@@ -129,17 +151,9 @@ mux4 #(32) alu_b_mux(
     .in3(32'd2),
     .out(alu_b_o)
     );
+*/
 
 /* decoder */
-wire [1:0] decode_form = ir[31:30];
-wire [5:0] decode_op = ir[29:24];
-wire [3:0] decode_rd = ir[27:24];
-wire [3:0] decode_aluop = ir[23:20];
-wire [3:0] decode_ra = ir[19:16];
-wire [3:0] decode_rb = ir[15:12];
-wire [31:0] decode_imm16_signed = (ir[15]) ? { 16'b1111111111111111, ir[15:0] } : { 16'b0000000000000000, ir[15:0] };
-wire [31:0] decode_imm22_signed = (ir[21]) ? { 10'b1111111111, ir[21:0] } : { 10'b0000000000, ir[21:0] };
-
 always @(ir or decode_form or decode_op or decode_rd or decode_aluop or decode_ra or decode_rb or decode_imm16_signed or decode_imm22_signed)
 begin
     /* undefined state */
@@ -188,6 +202,7 @@ begin
         end
         2'b10: begin
             $display("form 2 - branch");
+            reg_b_sel = decode_rd;
             if (ir[29] == 0) begin
                 // pc relative branch
                 aluop_o = `ALU_OP_ADD; // add

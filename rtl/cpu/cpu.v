@@ -34,6 +34,12 @@ module  cpu(
     output [31:0] debugout
 );
 
+wire stall_2to1;
+wire [31:0] ir_1to2;
+wire [29:0] nextpc_1to2;
+wire take_branch_4to1;
+wire [29:0] branch_pc_4to1;
+
 stage1_fetch stage1(
     .clk_i(clk),
     .rst_i(rst),
@@ -51,11 +57,24 @@ stage1_fetch stage1(
     .rmemdata_i(rmemdata)
 );
 
-wire stall_2to1;
-wire [31:0] ir_1to2;
-wire [29:0] nextpc_1to2;
-wire take_branch_4to1;
-wire [29:0] branch_pc_4to1;
+wire do_wb_5to2;
+wire [3:0] wb_reg_5to2;
+wire [31:0] wb_val_5to2;
+
+wire stall_3to2;
+
+wire [29:0] nextpc_2to3;
+wire [1:0] control_branch_2to3;
+wire control_load_2to3;
+wire control_store_2to3;
+
+wire [3:0] aluop_2to3;
+wire [31:0] alu_a_2to3;
+wire [31:0] alu_b_2to3;
+wire [31:0] branch_test_val_2to3;
+
+wire do_wb_2to3;
+wire [3:0] wb_reg_2to3;
 
 stage2_decode stage2(
     .clk_i(clk),
@@ -86,29 +105,21 @@ stage2_decode stage2(
     .wb_reg_o(wb_reg_2to3)
 );
 
-wire do_wb_5to2;
-wire [3:0] wb_reg_5to2;
-wire [31:0] wb_val_5to2;
+wire stall_4to3;
 
-wire stall_3to2;
-wire [29:0] nextpc_2to3;
-wire [1:0] control_branch_2to3;
-wire control_load_2to3;
-wire control_store_2to3;
+wire control_load_3to4;
+wire control_store_3to4;
+wire control_take_branch_3to4;
+wire do_wb_3to4;
+wire [3:0] wb_reg_3to4;
 
-wire [3:0] aluop_2to3;
-wire [31:0] alu_a_2to3;
-wire [31:0] alu_b_2to3;
-wire [31:0] branch_test_val_2to3;
-
-wire do_wb_2to3;
-wire [3:0] wb_reg_2to3;
+wire [31:0] alu_3to4;
 
 stage3_execute stage3(
     .clk_i(clk),
     .rst_i(rst),
 
-    .stall_i(0),
+    .stall_i(stall_4to3),
 
     .control_branch_i(control_branch_2to3),
     .control_load_i(control_load_2to3),
@@ -131,14 +142,9 @@ stage3_execute stage3(
     .wb_reg_o(wb_reg_3to4)
 );
 
-wire stall_4to3;
-wire control_load_3to4;
-wire control_store_3to4;
-wire control_take_branch_3to4;
-wire do_wb_3to4;
-wire [3:0] wb_reg_3to4;
-
-wire [31:0] alu_3to4;
+wire do_wb_4to5;
+wire [3:0] wb_reg_4to5;
+wire [31:0] wb_val_4to5;
 
 stage4_memory stage4(
     .clk_i(clk),
@@ -159,10 +165,6 @@ stage4_memory stage4(
     .wb_reg_o(wb_reg_4to5),
     .wb_val_o(wb_val_4to5)
 );
-
-wire do_wb_4to5;
-wire [3:0] wb_reg_4to5;
-wire [31:0] wb_val_4to5;
 
 stage5_writeback stage5(
     .clk_i(clk),

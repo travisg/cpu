@@ -119,8 +119,8 @@ begin
 end
 
 initial begin
-    $dumpfile("testbench.vcd");
-    $dumpvars(0,testbench);
+//    $dumpfile("testbench.vcd");
+//    $dumpvars(0,testbench);
 end
 
 initial #1000 $finish;
@@ -143,10 +143,10 @@ initial begin
 end
 
 always @(posedge clk) begin
-    if (re)
+    //if (re)
         rdata <= #8 rom[addr];
-    else
-        rdata <= #1 32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
+    //else
+    //    rdata <= #1 32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz;
     if (we)
         rom[addr] <= wdata;
 end

@@ -34,21 +34,18 @@ begin
     case (op)
         `ALU_OP_ADD: res = a + b;
         `ALU_OP_SUB: res = a - b;
-        `ALU_OP_RSB: res = b - a;
         `ALU_OP_AND: res = a & b;
         `ALU_OP_OR:  res = a | b;
         `ALU_OP_XOR: res = a ^ b;
         `ALU_OP_LSL: res = a << b;
         `ALU_OP_LSR: res = a >> b;
-        `ALU_OP_ASR: res = a >>> b;
-        `ALU_OP_MOV: res = b;
-        `ALU_OP_MVB: res = { 16'd0, b[15:0] };
-        `ALU_OP_MVT: res = a | (b << 16);
+        `ALU_OP_ASR: res = $signed(a) >>> b;
+        `ALU_OP_MVT: res = { b[15:0], a[15:0] };
 
         `ALU_OP_SEQ: res = a == b;
         `ALU_OP_SLT: res = a < b;
         `ALU_OP_SLTE: res = a <= b;
-        `ALU_OP_UND: res = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+        default: res = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
     endcase
 end
 

@@ -37,18 +37,14 @@
 
 `define ALU_OP_ADD  4'b0000
 `define ALU_OP_SUB  4'b0001
-`define ALU_OP_RSB  4'b0010
-`define ALU_OP_AND  4'b0011
-`define ALU_OP_OR   4'b0100
-`define ALU_OP_XOR  4'b0101
-`define ALU_OP_LSL  4'b0110
-`define ALU_OP_LSR  4'b0111
-`define ALU_OP_ASR  4'b1000
-`define ALU_OP_MOV  4'b1001
-`define ALU_OP_MVB  4'b1010
-`define ALU_OP_MVT  4'b1011
+`define ALU_OP_AND  4'b0010
+`define ALU_OP_OR   4'b0011
+`define ALU_OP_XOR  4'b0100
+`define ALU_OP_LSL  4'b0101
+`define ALU_OP_LSR  4'b0110
+`define ALU_OP_ASR  4'b0111
+`define ALU_OP_MVT  4'b1000
 
-`define ALU_OP_SEQ  4'b1100
-`define ALU_OP_SLT  4'b1101
-`define ALU_OP_SLTE 4'b1110
-`define ALU_OP_UND  4'b1111
+`define ALU_OP_SEQ  4'b1001
+`define ALU_OP_SLT  4'b1010
+`define ALU_OP_SLTE 4'b1011

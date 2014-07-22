@@ -96,7 +96,7 @@ end
 
 always @(control_branch or branch_test_val)
 begin
-    casex (control_branch)
+    case (control_branch)
         `CONTROL_BRANCH_NOTAKE: begin
             control_take_branch_o = 0;
         end
@@ -104,10 +104,10 @@ begin
             control_take_branch_o = 1;
         end
         `CONTROL_BRANCH_COND_NZ: begin
-            control_take_branch_o = branch_test_val_i != 0;
+            control_take_branch_o = (branch_test_val != 0) ? 1'b1 : 1'b0;
         end
         `CONTROL_BRANCH_COND_Z: begin
-            control_take_branch_o = branch_test_val_i == 0;
+            control_take_branch_o = (branch_test_val == 0) ? 1'b1 : 1'b0;
         end
     endcase
 end

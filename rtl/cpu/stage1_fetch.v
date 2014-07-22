@@ -48,7 +48,7 @@ initial begin
 end
 */
 
-assign nextpc_o = take_branch_i ? branch_pc_i : pc + 1;
+assign nextpc_o = take_branch_i ? branch_pc_i : pc + 30'b1;
 assign rmemaddr_o = nextpc_o;
 assign ir_o = rmemdata_i;
 
