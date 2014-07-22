@@ -1,89 +1,92 @@
 # vi: set ts=4 expandtab:
 properties:
 32 bit instructions
-16 registers
+32 registers
 3 address
+64k control registers
 
-r0-r15 - 32bit
+r0-r31 - 32bit
 
-SP = r14
-LR = r15
+r0 is zero filled
+r30 is sp
+r31 is lr
 
 instruction forms
 33222222222211111111110000000000
 10987654321098765432109876543210
 --------------------------------
-00ppddddppppaaaaiiiiiiiiiiiiiiii
-01ppddddppppaaaabbbbxxxxxxxxxxxx
-100pddddppiiiiiiiiiiiiiiiiiiiiii
-101pddddppxxaaaaxxxxxxxxxxxxxxxx
+00ppppDDDDDaaaaaiiiiiiiiiiiiiiii
+00ppppDDDDDaaaaaiiiiiiiiiiiipppp - ldr/str form
+01ppppDDDDDaaaaabbbbbxxxxxxxxxxx
+01ppppDDDDDaaaaabbbbbxxxxxxxpppp - ldr/str form
+10ppppDDDDDiiiiiiiiiixxxxxxxxxxx
 11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 all immediates are sign extended
 all don't cares should be zero
 
-                        00 -- immediate version
+                        00 -- immediate version (16bit signed, 12bit signed for ldr/str)
                         01 -- register,register
 
         alu ops
-add                     0?  00 d<4> 0000 a<4> b<4>,imm<16>      a + b
-sub                     0?  00 d<4> 0001 a<4> b<4>,imm<16>      a - b
-rsb                     0?  00 d<4> 0010 a<4> b<4>,imm<16>      b - a
-and                     0?  00 d<4> 0011 a<4> b<4>,imm<16>      a & b
-or                      0?  00 d<4> 0100 a<4> b<4>,imm<16>      a | b
-xor                     0?  00 d<4> 0101 a<4> b<4>,imm<16>      a ^ b
-lsl                     0?  00 d<4> 0110 a<4> b<4>,imm<16>      a << b
-lsr                     0?  00 d<4> 0111 a<4> b<4>,imm<16>      a >> b
-asr                     0?  00 d<4> 1000 a<4> b<4>,imm<16>      a >>> b (sign extend)
-mov                     0?  00 d<4> 1001 xxxx b<4>,imm<16>      b
-mvb                     0?  00 d<4> 1010 xxxx b<4>,imm<16>      b & 0xffff
-mvt                     0?  00 d<4> 1011 a<4> b<4>,imm<16>      a | (b << 16)
+                        0   2    6    11   16
+add                     0?  0000 d<5> a<5> b<5>,imm<16>      a + b
+sub                     0?  0001 d<5> a<5> b<5>,imm<16>      a - b
+and                     0?  0010 d<5> a<5> b<5>,imm<16>      a & b
+or                      0?  0011 d<5> a<5> b<5>,imm<16>      a | b
+xor                     0?  0100 d<5> a<5> b<5>,imm<16>      a ^ b
+lsl                     0?  0101 d<5> a<5> b<5>,imm<16>      a << b
+lsr                     0?  0110 d<5> a<5> b<5>,imm<16>      a >> b
+asr                     0?  0111 d<5> a<5> b<5>,imm<16>      a >>> b (sign extend)
+mvb                     0?  1000 d<5> a<5> b<5>,imm<16>      a | (b & 0xffff) (unsigned 16 bit b load)
+mvt                     0?  1001 d<5> a<5> b<5>,imm<16>      a | (b << 16)
 
-seq                     0?  00 d<4> 1100 a<4> b<4>,imm<16>      a == b
-slt                     0?  00 d<4> 1101 a<4> b<4>,imm<16>      a < b
-slte                    0?  00 d<4> 1110 a<4> b<4>,imm<16>      a <= b
-
-unused                  0?  00 d<4> 1111 a<4> b<4>,imm<16>
+seq                     0?  1010 d<5> a<5> b<5>,imm<16>      a == b
+slt                     0?  1011 d<5> a<5> b<5>,imm<16>      a < b
+slte                    0?  1100 d<5> a<5> b<5>,imm<16>      a <= b
 
         unused
-                        0?  01 xxxx xxxxxxxxxxxxxxxxxxxxx
+                        0x  1101 xxxxx xxxxx xxxxxxxxxxxxxxxx
 
         load/store
-ldr                     0?  10 d<4> xxx0 a<4> b<4>,imm<16>      ldr Rd, [Ra + b]
-str                     0?  11 d<4> xxx0 a<4> b<4>,imm<16>      str Rd, [Ra + b]
+ldrb                    0?  1110 d<5> a<5> b<5>,imm<12> 00 0!  ldrb Rd, [Ra + b]
+strb                    0?  1111 d<5> a<5> b<5>,imm<12> 00 0!  strb Rd, [Ra + b]
+ldrh                    0?  1110 d<5> a<5> b<5>,imm<12> 01 0!  ldrh Rd, [Ra + b]
+strh                    0?  1111 d<5> a<5> b<5>,imm<12> 01 0!  strh Rd, [Ra + b]
+ldr                     0?  1110 d<5> a<5> b<5>,imm<12> 10 0!  ldr  Rd, [Ra + b]
+str                     0?  1111 d<5> a<5> b<5>,imm<12> 10 0!  str  Rd, [Ra + b]
+        unused
+                        0x  1110 xxxx...                11 xx
+                        0x  1111 xxxx...                11 xx
 
-ldr                     0?  10 d<4> xxx1 xxxx b<4>,imm<16>      ldr Rd, [PC + b]
-str                     0?  11 d<4> xxx1 xxxx b<4>,imm<16>      str Rd, [PC + b]
+            if Ra == r0, use PC as base
+            ! = writeback to base reg
 
             ldr/str future expansion:
-                base register update
-                byte/halfword
                 multireg save
 
         branch
-b<l><z,nz>              10  0c d<4> Lz imm<22>
+b<l><z,nz> #imm         10  00Lz d<5> imm<21>
             L = save old PC+4 into link register
-            c = do a zero/notzero test against Rd
-            z = if c, test for zero or !zero in register Rd
+            z = test for zero or !zero in register Rd
 
-            if !c, d<4> field xxxx
+            zero test against r0 for branch always
+            imm<21> is shifted left 2, sign extended, added to PC
 
-            imm<22> is shifted left 2, sign extended
-
-b<l><z,nz>      r       10  1c d<4> Lz xx a<4> xxxxxxxxxxxx
-            same as above, but register target
-            bottom 2 bits of reg target ignored
+b<l><z,nz> r            10  01Lz d<5> a<5> xxxxxxxxxxx
 
             branch future expansion:
                 interrupt return
+                larger unconditional branch space?
 
         unused
-                        11  xxxxxxx xxxxxxxxxxxxxxxxxxxxx
+                        10  1xxx xxxxx xxxxx xxxxxxxxxxxxxxxx
+                        11  xxxx xxxxx xxxxx xxxxxxxxxxxxxxxx
 
 pseudo instructions:
-neg     a, b        -   rsb a, b, #0
-sub     a, #imm, b  -   rsb a, b, #imm
-not     a, b        -   xor a, b, #0
+mov     a, b        -   add a, r0, b
+neg     a, b        -   sub a, r0, b
+not     a, b        -   xor a, b, #-1
 li      a, #imm     -   mvb a, #(imm & 0xffff); mvt a, #(imm >> 16)
 
 common algorithms:
