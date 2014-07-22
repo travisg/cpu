@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     c->Reset();
     c->Run();
-    
+
     delete m;
 
     return 0;

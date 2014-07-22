@@ -24,6 +24,7 @@
 #define __CPU16_H
 
 #include "Cpu.h"
+#include "Cpu32Info.h"
 
 class Cpu32 : public Cpu {
 public:
@@ -36,10 +37,11 @@ public:
     virtual void Run();
 
 private:
-    uint32_t r[16];
+    uint32_t r[Cpu32Info::REG_COUNT];
     uint32_t pc;
 
     uint64_t cycleLimit;
+    bool dirtyReg[Cpu32Info::REG_COUNT];
     bool verbose;
 };
 

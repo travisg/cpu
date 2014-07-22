@@ -54,6 +54,7 @@ void Cpu32::Reset()
 {
     memset(r, 0, sizeof(r));
     pc = 0;
+    memset(dirtyReg, 0, sizeof(dirtyReg));
 }
 
 void Cpu32::SetCycleLimit(uint64_t limit)
@@ -76,8 +77,8 @@ void Cpu32::Run()
     bool done = false;
     while (!done) {
         cycle++;
-        word ins = mem->Read(pc & ~0x3);
-        
+        word ins = mem->Read32(pc & ~0x3);
+
         if (verbose)
             printf("PC 0x%08x ins 0x%08x %s\n", pc, ins, Dis::Dissassemble(ins).c_str());
 
@@ -86,67 +87,100 @@ void Cpu32::Run()
         switch (DecodeForm(ins)) {
             case FORM_IMM_UNSHIFTED: {
                 word res;
-                word b; 
-                
+                word b;
+
                 b = Decodeimm16_signed(ins);
                 goto alucommon;
             case FORM_REG_UNSHIFTED:
 
-                b = r[DecodeRb(ins)]; 
+                b = r[DecodeRb(ins)];
 alucommon:
                 word a = r[DecodeRa(ins)];
-                if (DecodeOp(ins) == OP_ALU_UNSHIFTED) { // alu op
-                    switch (DecodeALUOp(ins)) {
-                        case OP_ADD_NUM: res = a + b; break;
-                        case OP_SUB_NUM: res = a - b; break;
-                        case OP_RSB_NUM: res = b - a; break;
-                        case OP_AND_NUM: res = a & b; break;
-                        case OP_OR_NUM:  res = a | b; break;
-                        case OP_XOR_NUM: res = a ^ b; break;
-                        case OP_LSL_NUM: res = a << b; break;
-                        case OP_LSR_NUM: res = a >> b; break;
-                        case OP_ASR_NUM: res = (int)a >> b; break;
-                        case OP_MOV_NUM: res = b; break;
-                        case OP_MVB_NUM: res = b & 0xffff; break;
-                        case OP_MVT_NUM: res = a | (b << 16); break;
-                        case OP_SEQ_NUM: res = a == b; break;
-                        case OP_SLT_NUM: res = a < b; break;
-                        case OP_SLTE_NUM: res = a <= b; break;
-                        default:
-                            goto undefined;
-                    }
+                word Rd = DecodeRd(ins);
+                switch (DecodeALUOp(ins)) {
+                    case OP_ADD_NUM: res = a + b; break;
+                    case OP_SUB_NUM: res = a - b; break;
+                    case OP_AND_NUM: res = a & b; break;
+                    case OP_OR_NUM:  res = a | b; break;
+                    case OP_XOR_NUM: res = a ^ b; break;
+                    case OP_LSL_NUM: res = a << b; break;
+                    case OP_LSR_NUM: res = a >> b; break;
+                    case OP_ASR_NUM: res = (int)a >> b; break;
+                    case OP_MVB_NUM: res = a | (b & 0xffff); break;
+                    case OP_MVT_NUM: res = a | (b << 16); break;
+                    case OP_SEQ_NUM: res = (a == b) ? 1 : 0; break;
+                    case OP_SLT_NUM: res = (a < b) ? 1 : 0; break;
+                    case OP_SLTE_NUM: res = (a <= b) ? 1 : 0; break;
+                    case OP_LDR_NUM:
+                    case OP_STR_NUM: {
+                        /* shared address generation and writeback */
+                        if (DecodeForm(ins) == FORM_IMM_UNSHIFTED)
+                            b = Decodeimm12_signed(ins);
 
-                    r[DecodeRd(ins)] = res;
-                } else if (DecodeOp(ins) == OP_LOAD_UNSHIFTED) { // load
-                    res = mem->Read(a + b);
-                    r[DecodeRd(ins)] = res;
-                } else if (DecodeOp(ins) == OP_STORE_UNSHIFTED) { // store
-                    mem->Write(a + b, r[DecodeRd(ins)]);
-                } else {
-                    goto undefined;
+                        /* look for PC as base */
+                        if (DecodeRa(ins) == ZERO) {
+                            a = pc;
+                            if (DecodeLdrStrW(ins)) {
+                                goto undefined;
+                            }
+                        }
+
+                        word addr = a + b;
+
+                        /* writeback */
+                        if (DecodeLdrStrW(ins)) {
+                            r[DecodeRa(ins)] = addr;
+                            dirtyReg[DecodeRa(ins)] = true;
+                        }
+
+                        /* specific ldr/str behavior */
+                        if (DecodeALUOp(ins) == OP_LDR_NUM) {
+                            switch (DecodeLdrStrSize(ins)) {
+                                case LDRSTR_SIZE_WORD: res = mem->Read32(addr); break;
+                                case LDRSTR_SIZE_HALF: res = mem->Read16(addr); break;
+                                case LDRSTR_SIZE_BYTE: res = mem->Read8(addr); break;
+                                default: goto undefined;
+                            }
+                        } else {
+                            switch (DecodeLdrStrSize(ins)) {
+                                case LDRSTR_SIZE_WORD: mem->Write32(addr, r[Rd]); break;
+                                case LDRSTR_SIZE_HALF: mem->Write16(addr, r[Rd]); break;
+                                case LDRSTR_SIZE_BYTE: mem->Write8(addr, r[Rd]); break;
+                                default: goto undefined;
+                            }
+                            Rd = 0; /* keeps it from writing back below */
+                        }
+                        break;
+                    }
+                    default:
+                        goto undefined;
                 }
 
+                /* writeback, except for r0 */
+                if (Rd != 0) {
+                    r[Rd] = res;
+                    dirtyReg[Rd] = true;
+                }
                 break;
             }
+
             case FORM_BRANCH_UNSHIFTED: {
                 word target;
 
                 if (DecodeBranchR(ins)) {
                     target = r[DecodeRa(ins)];
                 } else {
-                    target = pc + Decodeimm22_signed(ins);
+                    target = pc + Decodeimm21_signed(ins);
                 }
 //              TRACEF("branch, target 0x%x\n", target);
 
-                // if it's a conditional branch, test and drop out if it fails
+                // test and drop out if it fails
                 bool take = true;
-                if (DecodeBranchC(ins)) {
-                    word test = r[DecodeRd(ins)];
-                    if (DecodeBranchZ(ins)) {
-                        take = test == 0;
-                    } else {
-                        take = test != 0;
-                    }
+                word test = r[DecodeRd(ins)];
+                if (DecodeBranchZ(ins)) {
+                    take = test == 0;
+                } else {
+                    take = test != 0;
                 }
 
 
@@ -154,6 +188,7 @@ alucommon:
 //                  TRACEF("taking branch\n");
                     if (DecodeBranchL(ins)) {
                         r[LR] = pc;
+                        dirtyReg[LR] = true;
                     }
 
                     /* look for infinite loop */
@@ -172,10 +207,20 @@ alucommon:
         }
 
         if (verbose) {
-            TRACEF("\tR0 0x%08x R1 0x%08x R2  0x%08x R3  0x%08x R4  0x%08x R5  0x%08x R6  0x%08x R7  0x%08x\n", 
-                r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]);
-            TRACEF("\tR8 0x%08x R9 0x%08x R10 0x%08x R11 0x%08x R12 0x%08x R13 0x%08x R14 0x%08x R15 0x%08x\n", 
-                r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15]);
+            for (int i = 0; i < Cpu32Info::REG_COUNT; i++) {
+                if ((i % 8) == 0)
+                    TRACEF("\t");
+                if (dirtyReg[i]) {
+                    TRACEF("\x1b[1;34m");
+                }
+                TRACEF("R%-2d 0x%08x ", i, r[i]);
+                if (dirtyReg[i]) {
+                    TRACEF("\x1b[0m");
+                }
+                if (((i + 1) % 8) == 0)
+                    TRACEF("\n");
+                dirtyReg[i] = false;
+            }
         }
 
 //      if ((cycle % 1000000) == 0)

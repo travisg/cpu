@@ -56,7 +56,7 @@ int Mem::LoadFile(const std::string &file, uint32_t addr)
     return 0;
 }
 
-uint32_t Mem::Read(uint32_t addr)
+uint32_t Mem::Read32(uint32_t addr)
 {
 //  printf("read at addr 0x%x\n", addr);
     if (addr & 0x3) {
@@ -70,7 +70,7 @@ uint32_t Mem::Read(uint32_t addr)
     return ntohl(*((uint32_t *)&mem[addr]));
 }
 
-void Mem::Write(uint32_t addr, uint32_t val)
+void Mem::Write32(uint32_t addr, uint32_t val)
 {
     if (addr & 0x3) {
         std::cerr << "address " << addr << " is unaligned" << std::endl;
@@ -88,4 +88,62 @@ void Mem::Write(uint32_t addr, uint32_t val)
 
     *((uint32_t *)&mem[addr]) = htonl(val);
 }
+
+uint16_t Mem::Read16(uint32_t addr)
+{
+//  printf("read at addr 0x%x\n", addr);
+    if (addr & 0x1) {
+        std::cerr << "address " << addr << " is unaligned" << std::endl;
+        return 0;
+    }
+
+    if (addr > size - 2)
+        return 0;
+
+    return ntohs(*((uint16_t *)&mem[addr]));
+}
+
+void Mem::Write16(uint32_t addr, uint16_t val)
+{
+    if (addr & 0x1) {
+        std::cerr << "address " << addr << " is unaligned" << std::endl;
+        return;
+    }
+
+    if (addr == 0x80000000) {
+        printf("%c", val & 0xff);
+        fflush(stdout);
+        return;
+    }
+
+    if (addr > size - 2)
+        return;
+
+    *((uint16_t *)&mem[addr]) = htons(val);
+}
+
+uint8_t Mem::Read8(uint32_t addr)
+{
+//  printf("read at addr 0x%x\n", addr);
+    if (addr > size - 1)
+        return 0;
+
+    return *((uint8_t *)&mem[addr]);
+}
+
+void Mem::Write8(uint32_t addr, uint8_t val)
+{
+    if (addr == 0x80000000) {
+        printf("%c", val & 0xff);
+        fflush(stdout);
+        return;
+    }
+
+    if (addr > size - 1)
+        return;
+
+    *((uint8_t *)&mem[addr]) = val;
+}
+
+
 

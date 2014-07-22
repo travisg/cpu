@@ -34,8 +34,13 @@ public:
 
     int LoadFile(const std::string &file, uint32_t addr);
 
-    uint32_t Read(uint32_t addr);
-    void Write(uint32_t addr, uint32_t val);
+    uint32_t Read32(uint32_t addr);
+    uint16_t Read16(uint32_t addr);
+    uint8_t Read8(uint32_t addr);
+
+    void Write32(uint32_t addr, uint32_t val);
+    void Write16(uint32_t addr, uint16_t val);
+    void Write8(uint32_t addr, uint8_t val);
 
 private:
     size_t size;

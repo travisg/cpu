@@ -80,8 +80,9 @@ public:
     void FixupPass();
 
     enum fixupType {
+        FIXUP_IMM12,
         FIXUP_IMM16,
-        FIXUP_IMM22_REL,
+        FIXUP_IMM21_REL,
         FIXUP_IMM32,
         FIXUP_IMM32_BOT,
         FIXUP_IMM32_TOP,

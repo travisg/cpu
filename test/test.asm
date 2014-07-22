@@ -1,4 +1,4 @@
-# header comment
+; header comment
 ; start
 start:
     add     r0, r0, r0
@@ -6,20 +6,25 @@ start:
 what:
     add     r0, r1, r2
     add     r1, r2, #3
-    add     r0, r1, what
-    mov     r0, #1
-    mov     r0, #0
-    mov     r0, #-1
-    mov     r0, #0x54
-    mov     r0, r1
-    mov     r5, what
-    not     r0, r1
-    mvn     r0, r1
-    add     sp, lr, pc
+    add     r5, r1, what
+    mov     r3, #1
+    mov     r4, #0
+    mov     r5, #-1
+    mov     r6, #0x54
+    mov     r7, r1
+    mov     r8, what
+    not     r9, r6
+    neg     r10, r7
+    add     sp, lr, #9
+    add     sp, lr, r5
 
     b       #4
 
     b       start
+    b       r7
+    bl      r7
+    bl      what
+
     and     r0, r0, r0
 
 shit:
@@ -29,7 +34,7 @@ loop0:
     sub     r0, r0, #1
     bnz     r0, loop0
 
-    mov     r1, #0x88
+    li     r1, #0x88
     ldr     r0, [r1]
     ldr     r0, [r1,#4]
     ldr     r0, [r1,#-4]
@@ -95,14 +100,14 @@ label:
 
 .align #512
 
-.text
+;.text
 
 string:
     .asciiz "this is a string"
     .asciiz "a second string"
     .asciiz "a string with numbers 234234234 and control \n asdfasdf"
-    .asciiz "a string with escaped strings in it \" test \""
-    .asciiz 'a string with single tic'
+;    .asciiz "a string with escaped strings in it \" test \""
+;    .asciiz 'a string with single tic'
 
     .asciiz "un" ; unaligned
     add     r4, r5, r6

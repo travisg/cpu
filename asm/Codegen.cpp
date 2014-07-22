@@ -42,19 +42,21 @@ extern void yyerror(const char *str);
 enum {
     OP_ADD,
     OP_SUB,
-    OP_RSB,
     OP_AND,
     OP_OR,
     OP_XOR,
     OP_LSL,
     OP_LSR,
     OP_ASR,
-    OP_MOV,
     OP_MVB,
     OP_MVT,
     OP_SLT,
     OP_SLTE,
     OP_SEQ,
+    OP_LDRB,
+    OP_STRB,
+    OP_LDRH,
+    OP_STRH,
     OP_LDR,
     OP_STR,
     OP_B,
@@ -64,7 +66,9 @@ enum {
     OP_BLZ,
     OP_BLNZ,
 
-    OP_MVN,
+    /* pseudo ops */
+    OP_MOV,
+    OP_NEG,
     OP_NOT,
     OP_LI
 };
@@ -102,19 +106,21 @@ void Codegen::InitSymtab(Symtab *tab)
     /* instructions */
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "add", OP_ADD));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "sub", OP_SUB));
-    symtab->AddSymbol(new Sym(Sym::KEYWORD, "rsb", OP_RSB));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "and", OP_AND));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "or", OP_OR));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "xor", OP_XOR));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "lsl", OP_LSL));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "lsr", OP_LSR));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "asr", OP_ASR));
-    symtab->AddSymbol(new Sym(Sym::KEYWORD, "mov", OP_MOV));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "mvb", OP_MVB));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "mvt", OP_MVT));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "slt", OP_SLT));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "slte", OP_SLTE));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "seq", OP_SEQ));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "ldrb", OP_LDRB));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "strb", OP_STRB));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "ldrh", OP_LDRH));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "strh", OP_STRH));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "ldr", OP_LDR));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "str", OP_STR));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "b", OP_B));
@@ -125,7 +131,8 @@ void Codegen::InitSymtab(Symtab *tab)
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "blnz", OP_BLNZ));
 
     /* pseudo instructions */
-    symtab->AddSymbol(new Sym(Sym::KEYWORD, "mvn", OP_MVN));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "mov", OP_MOV));
+    symtab->AddSymbol(new Sym(Sym::KEYWORD, "neg", OP_NEG));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "not", OP_NOT));
     symtab->AddSymbol(new Sym(Sym::KEYWORD, "li", OP_LI));
 }
@@ -222,19 +229,23 @@ Fixup *Codegen::AddFixup(Sym *identifier, off_t addr, fixupType type)
 #define ALUOP_OPTABLE \
         case OP_ADD:  i |= ALU(OP_ADD_NUM); goto alucommon; \
         case OP_SUB:  i |= ALU(OP_SUB_NUM); goto alucommon; \
-        case OP_RSB:  i |= ALU(OP_RSB_NUM); goto alucommon; \
         case OP_AND:  i |= ALU(OP_AND_NUM); goto alucommon; \
         case OP_OR:   i |= ALU(OP_OR_NUM); goto alucommon; \
         case OP_XOR:  i |= ALU(OP_XOR_NUM); goto alucommon; \
         case OP_LSL:  i |= ALU(OP_LSL_NUM); goto alucommon; \
         case OP_LSR:  i |= ALU(OP_LSR_NUM); goto alucommon; \
         case OP_ASR:  i |= ALU(OP_ASR_NUM); goto alucommon; \
-        case OP_MOV:  i |= ALU(OP_MOV_NUM); goto alucommon; \
         case OP_MVB:  i |= ALU(OP_MVB_NUM); goto alucommon; \
         case OP_MVT:  i |= ALU(OP_MVT_NUM); goto alucommon; \
         case OP_SEQ:  i |= ALU(OP_SEQ_NUM); goto alucommon; \
         case OP_SLT:  i |= ALU(OP_SLT_NUM); goto alucommon; \
-        case OP_SLTE: i |= ALU(OP_SLTE_NUM); goto alucommon
+        case OP_SLTE: i |= ALU(OP_SLTE_NUM); goto alucommon; \
+        case OP_LDRB: i |= ALU(OP_LDR_NUM); goto alucommon; \
+        case OP_STRB: i |= ALU(OP_STR_NUM); goto alucommon; \
+        case OP_LDRH: i |= ALU(OP_LDR_NUM); goto alucommon; \
+        case OP_STRH: i |= ALU(OP_STR_NUM); goto alucommon; \
+        case OP_LDR:  i |= ALU(OP_LDR_NUM); goto alucommon; \
+        case OP_STR:  i |= ALU(OP_STR_NUM); goto alucommon
 
 void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3)
 {
@@ -245,7 +256,7 @@ void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Reg r3)
         ALUOP_OPTABLE;
             // common form
 alucommon:
-            i |= FORM_REG | OP(0) | RD(r1.num) | RA(r2.num) | RB(r3.num);
+            i |= FORM_REG | RD(r1.num) | RA(r2.num) | RB(r3.num);
             break;
         default:
             yyerror("syntax error");
@@ -283,7 +294,7 @@ alucommon:
             }
 
             // emit the immediate
-            i |= FORM_IMM | OP(0) | RD(r1.num) | RA(r2.num) | IMM16(imm);
+            i |= FORM_IMM | RD(r1.num) | RA(r2.num) | IMM16(imm);
 
             break;
         default:
@@ -304,7 +315,7 @@ void Codegen::Emit3Addr(Sym *ins, Reg r1, Reg r2, Sym *identifier)
             // common form
 alucommon:
             // emit the instruction, fix it up later
-            i |= FORM_IMM | OP(0) | RD(r1.num) | RA(r2.num) | IMM16(0);
+            i |= FORM_IMM | RD(r1.num) | RA(r2.num) | IMM16(0);
 
             // add fixup
             AddFixup(identifier, curaddr, FIXUP_IMM16);
@@ -323,22 +334,22 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Reg r2)
 
     // MOV
     // MVB
-    // MVN (pseudo)
+    // NEG (pseudo)
     // NOT (pseudo)
 
     uint32_t i = 0;
     switch (ins->GetOpcode()) {
         case OP_MOV:
-            i |= FORM_REG | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0) | RB(r2.num);
+            i |= FORM_REG | ALU(OP_ADD_NUM) | RD(r1.num) | RA(0) | RB(r2.num);
             break;
         case OP_MVB:
-            i |= FORM_REG | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0) | RB(r2.num);
+            i |= FORM_REG | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0) | RB(r2.num); // XXX check
             break;
-        case OP_MVN:
-            i |= FORM_IMM | OP(0) | ALU(OP_RSB_NUM) | RD(r1.num) | RA(r2.num) | IMM16(0);
+        case OP_NEG:
+            i |= FORM_REG | ALU(OP_SUB_NUM) | RD(r1.num) | RA(0) | RB(r2.num);
             break;
         case OP_NOT:
-            i |= FORM_IMM | OP(0) | ALU(OP_XOR_NUM) | RD(r1.num) | RA(r2.num) | IMM16(0);
+            i |= FORM_IMM | ALU(OP_XOR_NUM) | RD(r1.num) | RA(r2.num) | IMM16(-1);
             break;
         case OP_BLNZ: // blnz r, r
             i |= BRANCH_L;
@@ -349,7 +360,7 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Reg r2)
             i |= BRANCH_Z;
         case OP_BNZ: // bnz r, r
 shared_b:
-            i |= FORM_BRANCH | BRANCH_R | BRANCH_C | RD(r1.num) | RA(r2.num);
+            i |= FORM_BRANCH | BRANCH_R | RD(r1.num) | RA(r2.num);
             break;
         default:
             yyerror("syntax error");
@@ -386,7 +397,7 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
     uint32_t i = 0;
     switch (ins->GetOpcode()) {
         case OP_MOV:
-            i |= FORM_IMM | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0);
+            i |= FORM_IMM | ALU(OP_ADD_NUM) | RD(r1.num) | RA(0);
 
             // make sure immediate is in range
             if (!inrange_signed(imm, 16)) {
@@ -399,19 +410,19 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
         case OP_LI:
             if (inrange_signed(imm, 16)) {
                 // we can use just mov
-                i |= FORM_IMM | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0);
+                i |= FORM_IMM | ALU(OP_ADD_NUM) | RD(r1.num) | RA(0);
                 i |= IMM16(imm);
             } else if (inrange_unsigned(imm, 16)) {
                 // we can use just mvb
-                i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+                i |= FORM_IMM | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
                 i |= IMM16(imm);
             } else {
                 // two instruction mvb/mvt
-                i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+                i |= FORM_IMM | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
                 i |= IMM16(imm);
                 EmitInstruction(i);
 
-                i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
+                i = FORM_IMM | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
                 i |= IMM16(imm >> 16);
             }
             break;
@@ -424,11 +435,11 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, int imm)
             i |= BRANCH_Z;
         case OP_BNZ: // bnz r, #imm
 shared_b:
-            i |= FORM_BRANCH | BRANCH_C | RD(r1.num);
-            if (fixup_branch_immediate(&imm, 22) < 0)
+            i |= FORM_BRANCH | RD(r1.num);
+            if (fixup_branch_immediate(&imm, 21) < 0)
                 return;
 
-            i |= IMM22(imm);
+            i |= IMM21(imm);
             break;
         default:
             yyerror("syntax error");
@@ -444,17 +455,17 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
     uint32_t i = 0;
     switch (ins->GetOpcode()) {
         case OP_MOV:
-            i |= FORM_IMM | OP(0) | ALU(OP_MOV_NUM) | RD(r1.num) | RA(0);
+            i |= FORM_IMM | ALU(OP_ADD_NUM) | RD(r1.num) | RA(0);
 
             AddFixup(identifier, curaddr, FIXUP_IMM16);
             break;
         case OP_LI:
             // two instruction mvb/mvt
-            i |= FORM_IMM | OP(0) | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
+            i |= FORM_IMM | ALU(OP_MVB_NUM) | RD(r1.num) | RA(0);
             AddFixup(identifier, curaddr, FIXUP_IMM32_BOT);
             EmitInstruction(i);
 
-            i = FORM_IMM | OP(0) | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
+            i = FORM_IMM | ALU(OP_MVT_NUM) | RD(r1.num) | RA(r1.num);
             AddFixup(identifier, curaddr, FIXUP_IMM32_TOP);
             break;
         case OP_BLNZ: // blnz r, identifier
@@ -466,8 +477,8 @@ void Codegen::Emit2Addr(Sym *ins, Reg r1, Sym *identifier)
             i |= BRANCH_Z;
         case OP_BNZ: // bnz r, identifier
 shared_b:
-            i |= FORM_BRANCH | BRANCH_C | RD(r1.num);
-            AddFixup(identifier, curaddr, FIXUP_IMM22_REL);
+            i |= FORM_BRANCH | RD(r1.num);
+            AddFixup(identifier, curaddr, FIXUP_IMM21_REL);
             break;
         default:
             yyerror("syntax error");
@@ -487,7 +498,8 @@ void Codegen::Emit1Addr(Sym *ins, Reg r1)
         case OP_BL:
             i |= BRANCH_L;
         case OP_B:
-            i |= FORM_BRANCH | BRANCH_R | RA(r1.num);
+            // bz r0, ...
+            i |= FORM_BRANCH | BRANCH_R | BRANCH_Z | RD(0) | RA(r1.num);
             break;
         default:
             yyerror("syntax error");
@@ -507,10 +519,10 @@ void Codegen::Emit1Addr(Sym *ins, int imm)
         case OP_BL:
             i |= BRANCH_L;
         case OP_B:
-            if (fixup_branch_immediate(&imm, 22) < 0)
+            if (fixup_branch_immediate(&imm, 21) < 0)
                 return;
 
-            i |= FORM_BRANCH | IMM22(imm);
+            i |= FORM_BRANCH | BRANCH_Z | RD(0) | IMM21(imm);
             break;
         default:
             yyerror("syntax error");
@@ -528,9 +540,9 @@ void Codegen::Emit1Addr(Sym *ins, Sym *identifier)
         case OP_BL:
             i |= BRANCH_L;
         case OP_B:
-            i |= FORM_BRANCH;
+            i |= FORM_BRANCH | BRANCH_Z | RD(0);
 
-            AddFixup(identifier, curaddr, FIXUP_IMM22_REL);
+            AddFixup(identifier, curaddr, FIXUP_IMM21_REL);
             break;
         default:
             yyerror("syntax error");
@@ -563,18 +575,30 @@ void Codegen::EmitLoadStore2RegImm(Sym *ins, Reg r1, Reg r2, int imm)
 
     uint32_t i = 0;
     switch (ins->GetOpcode()) {
+        case OP_LDRH:
+            i |= (LDRSTR_SIZE_HALF << LDRSTR_SIZE_SHIFT);
+            goto ldr_common;
+        case OP_LDRB:
+            i |= (LDRSTR_SIZE_BYTE << LDRSTR_SIZE_SHIFT);
         case OP_LDR:
-            i |= OP(OP_LOAD_UNSHIFTED);
+ldr_common:
+            i |= ALU(OP_LDR_NUM);
             goto ldrstr_common;
+        case OP_STRH:
+            i |= (LDRSTR_SIZE_HALF << LDRSTR_SIZE_SHIFT);
+            goto str_common;
+        case OP_STRB:
+            i |= (LDRSTR_SIZE_BYTE << LDRSTR_SIZE_SHIFT);
         case OP_STR:
-            i |= OP(OP_STORE_UNSHIFTED);
+str_common:
+            i |= ALU(OP_STR_NUM);
 ldrstr_common:
-            i |= FORM_IMM | ALU(0) | RD(r1.num) | RA(r2.num);
+            i |= FORM_IMM | RD(r1.num) | RA(r2.num);
 
-            if (fixup_loadstore_immediate(&imm, 16) < 0)
+            if (fixup_loadstore_immediate(&imm, 12) < 0)
                 return;
 
-            i |= IMM16(imm);
+            i |= IMM12(imm);
             break;
         default:
             yyerror("syntax error");
@@ -591,13 +615,25 @@ void Codegen::EmitLoadStore3Reg(Sym *ins, Reg r1, Reg r2, Reg r3)
 
     uint32_t i = 0;
     switch (ins->GetOpcode()) {
+        case OP_LDRH:
+            i |= (LDRSTR_SIZE_HALF << LDRSTR_SIZE_SHIFT);
+            goto ldr_common;
+        case OP_LDRB:
+            i |= (LDRSTR_SIZE_BYTE << LDRSTR_SIZE_SHIFT);
         case OP_LDR:
-            i |= OP(OP_LOAD_UNSHIFTED);
+ldr_common:
+            i |= ALU(OP_LDR_NUM);
             goto ldrstr_common;
+        case OP_STRH:
+            i |= (LDRSTR_SIZE_HALF << LDRSTR_SIZE_SHIFT);
+            goto str_common;
+        case OP_STRB:
+            i |= (LDRSTR_SIZE_BYTE << LDRSTR_SIZE_SHIFT);
         case OP_STR:
-            i |= OP(OP_STORE_UNSHIFTED);
+str_common:
+            i |= ALU(OP_STR_NUM);
 ldrstr_common:
-            i |= FORM_REG | ALU(0) | RD(r1.num) | RA(r2.num) | RB(r3.num);
+            i |= FORM_REG | RD(r1.num) | RA(r2.num) | RB(r3.num);
             break;
         default:
             yyerror("syntax error");
@@ -637,6 +673,17 @@ void Codegen::FixupPass()
         imm = lab->addr;
 
         switch (f->type) {
+            case FIXUP_IMM12:
+                // can imm fit
+                if (!inrange_signed(imm, 12)) {
+                    fprintf(stderr, "imm12 out of range\n");
+                    break;
+                }
+
+                out->ReadAt(f->addr, &ins);
+                ins |= IMM12(imm);
+                out->WriteAt(f->addr, ins);
+                break;
             case FIXUP_IMM16:
                 // can imm fit
                 if (!inrange_signed(imm, 16)) {
@@ -648,18 +695,18 @@ void Codegen::FixupPass()
                 ins |= IMM16(imm);
                 out->WriteAt(f->addr, ins);
                 break;
-            case FIXUP_IMM22_REL:
+            case FIXUP_IMM21_REL:
                 imm = imm - f->addr - 2; // calculate the relative address
-                imm = (int32_t)imm >> 2; // all of the imm22 rels are aligned on boundaries of 4
+                imm = (int32_t)imm >> 2; // all of the imm21 rels are aligned on boundaries of 4
 
                 // can imm fit
-                if (!inrange_signed(imm, 22)) {
-                    fprintf(stderr, "imm22 out of range\n");
+                if (!inrange_signed(imm, 21)) {
+                    fprintf(stderr, "imm21 out of range\n");
                     break;
                 }
 
                 out->ReadAt(f->addr, &ins);
-                ins |= IMM22(imm);
+                ins |= IMM21(imm);
                 out->WriteAt(f->addr, ins);
                 break;
             case FIXUP_IMM32:

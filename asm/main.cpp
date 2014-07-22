@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     err = parse_source();
     if (err < 0)
         goto err;
-    
+
     gCodegen->FixupPass();
 
 err:
